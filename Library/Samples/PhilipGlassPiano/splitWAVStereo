@@ -1,0 +1,3 @@
+for f in *.wav; do
+   ffmpeg -i "$f" -filter_complex "[0:a]channelsplit=channel_layout=stereo[left][right]" -map "[left]" "${f%.wav}_Left.wav"  -map "[right]" "${f%.wav}_Right.wav"
+done

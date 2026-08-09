@@ -1,0 +1,130 @@
+cd Documents/DA_CHmUsiCK/Song/
+
+
+
+./21_Chop.py
+./24_Chop.py
+
+./27_Chop.py & ./22_Chop.py
+
+./11_Kick.py m8
+
+./26_Chop.py
+
+./23_Chop.py PERHAPS PUT HIGH this blends 1 and 3 together
+
+./28_Chop.py PERHAPS put higher up
+
+./25_ put last
+
+
+## ====================
+## SOUNDCHECK
+./13_Cymbals.py & ./11_Kick.py & ./12_Snare.py & ./21_Chop.py m11 & ./25_Chop.py m11 &./23_Chop.py & ./51_BassGuitar.py p2 & ./24_Chop.py m12 & ./27_Chop.py m8 & ./31_SynthVerse.py p2 t15
+
+
+.
+
+
+
+./13_Cymbals.py s1 & ./11_Kick.py s1 & ./12_Snare.py s1 & ./21_Chop.py s1 & ./25_Chop.py s1 &./23_Chop.py s1 & ./51_BassGuitar.py s1 & ./24_Chop.py s1 & ./27_Chop.py s1 & ./31_SynthVerse.py s1
+
+    0.35 => float veloc;
+    trigger(chop1, 1.1, veloc, 0, 3*sixteenth);
+    trigger(chop5, 1.1, veloc, 0, sixteenth);
+    trigger(chop3, 1.1, veloc, 0, 2*sixteenth);
+    trigger(chop4, 1.1, veloc, 0, 4*sixteenth);
+    trigger(chop3, 1.1, veloc, 0, 2*sixteenth);
+    trigger(chop7, 1.1, veloc, 0, 4*sixteenth);
+
+    trigger(chop1, 1.1, veloc, 0, 3*sixteenth);
+    trigger(chop5, 1.1, veloc, 0, sixteenth);
+    trigger(chop3, 1.1, veloc, 0, 2*sixteenth);
+    trigger(chop4, 1.1, veloc, 0, 4*sixteenth);
+    trigger(chop3, 1.1, veloc, 0, 2*sixteenth);
+    trigger(chop6, 1.1, veloc, 0, 2*sixteenth);
+    trigger(chop6, 1.1, veloc, 0, 2*sixteenth);
+
+    trigger(chop1, 1.1, veloc, 0, 3*sixteenth);
+    trigger(chop5, 1.1, veloc, 0, sixteenth);
+    trigger(chop3, 1.1, veloc, 0, 2*sixteenth);
+    trigger(chop4, 1.1, veloc, 0, 4*sixteenth);
+    trigger(chop3, 1.1, veloc, 0, 2*sixteenth);
+    trigger(chop7, 1.1, veloc, 0, 2*sixteenth);
+    trigger(chop2, 1.1, veloc, 0, 2*sixteenth);
+
+    trigger(chop1, 1.1, veloc, 0, 3*sixteenth);
+    trigger(chop5, 1.1, veloc, 0, sixteenth);
+    trigger(chop3, 1.1, veloc, 0, 2*sixteenth);
+    trigger(chop4, 1.1, veloc, 0, 4*sixteenth);
+    trigger(chop3, 1.1, veloc, 0, 2*sixteenth);
+    trigger(chop8, 1.1, veloc, 0, 4*sixteenth);
+}
+
+
+
+
+## ====================
+
+
+## ====================
+## Intro
+./13_Cymbals.py r3 & ./11_Kick.py d1 r2 & ./12_Snare.py d2 r1 & ./23_Chop.py d3
+
+./21_Chop.py m11 & ./25_Chop.py m11
+
+# 1min
+./11_Kick.py m10 & ./51_BassGuitar.py m10
+
+
+./13_Cymbals.py
+
+# 1:45
+./11_Kick.py & ./12_Snare.py & ./51_BassGuitar.py & ./31_SynthVerse.py t15 m10
+
+
+# Proper Verse 2:30
+./31_SynthVerse.py p2 t15 & ./51_BassGuitar.py p2 & ./21_Chop.py m11 & ./25_Chop.py m11 & ./24_Chop.py m12 & ./27_Chop.py m8 
+
+
+# Silence vocals
+./21_Chop.py s1 & ./25_Chop.py s1 & ./24_Chop.py s1 & ./27_Chop.py s1
+
+
+# Bring back in vocals
+./21_Chop.py m11 & ./25_Chop.py m11 & ./24_Chop.py m12 & ./27_Chop.py m8 
+
+
+# Bridge to Chorus 3:30
+./31_SynthVerse.py t15 m10 & ./50_BassRiff.py m10
+
+## ====================
+## First Chorus 3:50
+./32_SynthChorus.py p1 t15 & ./51_BassGuitar.py p3 r1 & ./21_Chop.py & ./25_Chop.py & ./24_Chop.py & ./32_SynthChorus.py p2 t15 d1 r1 & ./51_BassGuitar.py p4 r1 d1 & ./21_Chop.py d1 m14 r1 & ./25_Chop.py d1 m14 r1 & ./27_Chop.py d1 m2 & ./31_SynthVerse.py d2 t15 & ./51_BassGuitar.py p1 m10 d2
+
+## Verse 4:50
+./31_SynthVerse.py p2 t15 & ./51_BassGuitar.py p2 & ./21_Chop.py m11 & ./25_Chop.py m11 & ./24_Chop.py m12 d1 & ./27_Chop.py m8
+
+
+# Bridge to Chorus 5:30
+./31_SynthVerse.py t15 m10 & ./51_BassGuitar.py m10
+
+
+## ====================
+## Last Chorus 6:00
+./32_SynthChorus.py p1 t15 & ./51_BassRiff.py p3 & ./21_Chop.py & ./25_Chop.py & ./24_Chop.py & ./32_SynthChorus.py p2 t15 d1 r1 & ./51_BassRiff.py p4 r1 d1 & ./21_Chop.py d1 m14 & ./25_Chop.py d1 m14 & ./27_Chop.py d1 m2 & ./60_DogPack.py
+
+## Repeat the dogs THIS LAST 5 CYCLES
+./60_DogPack.py
+
+## Put last riff back in 7:10
+./32_SynthChorus.py p2 t15 & ./51_BassRiff.py p4 & ./60_DogPack.py
+
+## Final Fade out THIS FADES OUT IN  1:20
+./01_SongFade.py m31 r-0.01 & ./60_DogPack.py & ./60_DogPack.py d2
+
+
+
+a1_flig. A2 Plane d11 ./13 d4 ./11 kick
+
+./13_Cymbals.py & ./11_Kick.py & ./12_Snare.py & ./21_Chop.py m11 & ./25_Chop.py m11 &./23_Chop.py & ./51_BassGuitar.py p2 & ./24_Chop.py m12 & ./27_Chop.py m8 & ./31_SynthVerse.py p2 t15

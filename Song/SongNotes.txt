@@ -1,0 +1,152 @@
+cd Documents/DA_CHmUsiCK/Song/
+
+## ====================
+## SOUNDCHECK
+
+# SWITCH ON
+./11_Kick.py h66 & ./12_Snare.py h66 & ./13_Cymbals.py h66 & ./21_Chop.py & ./22_Chop.py & ./23_Chop.py & ./24_Chop.py & ./25_Chop.py & ./26_Chop.py & ./27_Chop.py & ./28_Chop.py & ./41_Guitar.py p1 & ./31_Piano.py p1
+
+# SWITCH OFF
+./11_Kick.py s1 & ./12_Snare.py s1 & ./13_Cymbals.py s1 & ./21_Chop.py s1 & ./22_Chop.py s1 &./23_Chop.py s1 & ./24_Chop.py s1 & ./25_Chop.py s1 & ./26_Chop.py s1 & ./27_Chop.py s1 & ./28_Chop.py s1 & ./41_Guitar.py s1 & ./31_Piano.py s1 
+
+# ===============================================
+#   =============================================
+#   BARSTARDISATION OF A THEME BY DUSIN BROWN
+#   =============================================
+# ===============================================
+
+# Delay Information
+# 1 phrase = 9.92s
+# 2 phrase = 19.84s
+# 3 phrase  = 29.76s
+
+# ===============================================
+# INTRO CHOPS
+# ==============================================
+
+# Also fade out the frogs for later
+./23_Chop.py
+
+./21_Chop.py m11 & ./25_Chop.py m11
+
+./24_Chop.py m12 & ./27_Chop.py m8 
+
+# Keep 21 and 23 as constant to drive the chops rhythm along
+./21_Chop.py & ./22_Chop.py c0.7 & ./24_Chop.py c0.7 & ./25_Chop.py c0.7 & ./26_Chop.py c0.7 & ./27_Chop.py c0.7 & ./28_Chop.py c0.7
+
+# ===============================================
+# BRING IN DRUMS
+# ===============================================
+
+./13_Cymbals.py p3 r1 & ./11_Kick.py h66 W9.92 & ./12_Snare.py c0.8 h66 w9.92 v0.5 & ./13_Cymbals.py h66 w9.92
+
+# ===============================================
+# INTRODUCE GUITAR CHORDS
+# ===============================================
+
+# Let p1 play for longer
+./41_Guitar.py p1
+
+./41_Guitar.py p2
+
+# ===============================================
+# CYCLE AROUND GUITAR CHORDS
+# ===============================================
+
+./41_Guitar.py p1 & ./41_Guitar.py p2 w19.84
+
+# ===============================================
+# BRING IN THE PIANO WITH GUITAR
+#    get two bars of "verse" and then "chorus" 
+# ===============================================
+
+./41_Guitar.py p1 & ./31_Piano.py p1 & ./41_Guitar.py p2 w19.84 & ./31_Piano.py p2 w19.84
+
+# ===============================================
+# FADE OUT TO JUST THE PIANO AND BRING IN THE RAIN
+# ALSO FADE OUT THE FROGS FOR LATER INTRODUCTION
+# ===============================================
+
+./01_SongFade.py m91 d-30.0 & ./61_Rain.py w20.0 
+
+# ===============================================
+# PIANO CHORDS THEN HOLDS THE LAST CHORD
+# ===============================================
+
+./31_Piano.py p3 r1
+
+# ===============================================
+#   =============================================
+#   FROGS AND RAIN
+#   =============================================
+# ===============================================
+
+# ===============================================
+# CHANGE BPM
+# ===============================================
+
+./00_StartSong.py n32 d4 t146.0
+
+# ===============================================
+# START THUNDER 
+#    best approach is to set the right number going 
+#    and then don't touch until finished can be used 
+#    as a timer for this section
+#      r6 gives 3 min 56 s
+#      r7 gives 4 min 36 s
+#      r8 gives 5 min 15 s
+#      r9 gives 5 min 55 s
+#     r10 gives 6 min 34 s
+#
+# Delay the start of the frogs so don't do all of the changes at the same time
+#
+# ===============================================
+
+./62_Thunder.py r7 v0.03 & ./01_SongFade.py m64 d90.0 w13.1507 & ./71_73_Frogs_Break_LeftRight.py p1 w13.1507
+
+# ===============================================
+# START FROGS
+# ===============================================
+
+./71_73_Frogs_Break_LeftRight.py p1
+
+./71_73_Frogs_Break_LeftRight.py p2
+
+./71_73_Frogs_Break_LeftRight.py p3
+
+# ===============================================
+# ACCOMPANYING FROGS
+# ===============================================
+
+./74_Frogs_Break_Bass.py v0.4 m10 
+
+./72_Frogs_Break_Mid.py p1 c0.8
+./72_Frogs_Break_Mid.py p2 c0.8
+./72_Frogs_Break_Mid.py p3 c0.8
+
+# ===============================================
+# MIX UP THE LEFT AND RIGHT FROGS
+# ===============================================
+
+./71_73_Frogs_Break_LeftRight.py p3 & ./71_73_Frogs_Break_LeftRight.py p5 w13.1507
+
+# ===============================================
+# FINAL THUNDER
+#    MAKE SURE PREVIOUS THUNDER HAS FINISHED
+#    AND ANY DELAYED INSTRUMENTS HAVE FINISHED
+# ===============================================
+
+./71_73_Frogs_Break_LeftRight.py s1 & ./74_Frogs_Break_Bass.py s1 & ./72_Frogs_Break_Mid.py s1 & ./62_Thunder.py p2 r1 v0.125
+
+# ===============================================
+# FROGS REPRISE
+# ===============================================
+
+./72_Frogs_Break_Mid.py p10 r3
+
+# ===============================================
+# FADE OUT THE RAIN
+# ===============================================
+
+./01_SongFade.py m32 d-60.0
+
