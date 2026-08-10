@@ -108,10 +108,11 @@ This allows you to fade individual or multiple instruments using the following i
 | --- | --- | --- | --- |
 |**Rate**  |r-10.0   |float |reduces the volume of the instrument linearly. The number indicates the decay time in seconds  |\
 |**Mark**    |m10  |integer |fade instruments starting in 1X and 3X |\
+|**Wait time**  |w10.0 |float   |defines a wait time/delay of 10.0 seconds before the python sends out the OSC message (0.0) |\
 
 The mark information is converted into binary in ChucK to control specific instruments to fade. The leading number of the instrument file indicates the bit being enabled
 
-Note: for all of the instuments the default is that the fader is set to one. However, it is also possible to fade in an instrument using a positive time but you would, before using it, have to fade out that instrument to get the fader to start from zero.
+Note: for all of the instuments the default is that the fader is set to one. However, it is also possible to fade in an instrument using a positive time but you would first have to fade that instrument to zero using a negative rate.
 
 ## Instrument files
 
@@ -156,5 +157,5 @@ There are a number of bash scripts that have been written to help setup the samp
 - convertWAV44100Hz this converts the sample to 44100Hz sample rate. ChucK assumes this rate if you don't do this then your sample will be played back at the wrong rate leading to notes in a different key
 - splitWAVStereo this allows the left and right channels of the sample to be split out. You may need to do this to allow you to handle stereo files differently within the ChucK code
 
-Both scripts make use of ffmpeg to do the above conversion so this needs to be installed on your machine
+The above scripts make use of ffmpeg to do the above conversion so this needs to be installed on your machine
 
