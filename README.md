@@ -87,7 +87,7 @@ In one of the terminal window run the following in the project root directory
 ```
 This then loads all of the different chuck elements to run the code. The list of the files to be included is contained in Library.ck in the root directory. It will waits for an OSC synch message and the instructions sent by ./00_StartSong.py
 
-In this terminal window it will first display the length of time to complete a phrase. This will be the time required to delay an instrument using **W**wait command. It will then display the phrase number this helps align the introduction of different instruments as the song evolves.
+In this terminal window it will first display the length of time to complete a phrase. This will be the time required to delay an instrument using **W**ait command. It will then display the phrase number this helps align the introduction of different instruments as the song evolves.
 
 ### Terminal 2 - Starting a Song
 You run this from the Song folder 
@@ -98,7 +98,15 @@ You run this from the Song folder
 
 This transmits all of the song timing information ChucK to allow everything to be synced. This has to be run after the ChucK library has been started.
 
-Once you have done this then you can start running the different instruments. SongNotes.txt (in the Song directory) contains a series of commands which can be copied and pasted into you instrument terminal. Note: if you are using instructions which include a **W**ait then this can block you from copying and pasting in the next command into that terminal ... this is why you might want more terminals for a smoother performance.
+Once you have done this then you can start running the different instruments. There are two different approaches you can use to play the song.
+
+#### 1. Copy and Paste 
+
+SongNotes.txt which contains a series of commands which can be copied and pasted into you instrument terminal. Note: if you are using instructions which delay when an instrument is played then this can block you from copying and pasting in the next command ... this is why you might want more terminals if you want to give a smoother performance.
+
+#### 2. Jupypter Notebook
+
+SongNotes.ipynb contains the same series of commands as SongNotes.txt but in a Jupyter notebook. The instrument commands are contained in a python window with !! preceeding the instrument commands, this allows the commands to be run as if it was in a terminal window. The commands can be run by clicking the play button on the left of that section. Using this approach allows you to avoid having to copy and paste commands from a text file into a terminal window which is an advantage when performing live. **Note: you can only run one command at a time so if you use any commands that involve a wait then you will be blocked from running any other commands until the first command has finished.**
 
 ## 01_SongFade.py
 

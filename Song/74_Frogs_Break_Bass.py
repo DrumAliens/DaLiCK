@@ -39,8 +39,8 @@ phraseNumDivs = 128
 
 
 posVal =   [[ 0],  [ 0],  [ 0],  [ 0],  [ 0],  [ 0],  [ 0],  [ 0]]  
-midiVal =  [[57],  [56],  [57],  [56],  [57],  [55],  [57],  [56]]     
-sliceVal = [[ 0],  [ 0],  [ 0],  [ 6],  [ 0],  [ 0],  [ 0],  [ 6]]  
+midiVal =  [[57],  [56],  [57],  [56],  [57],  [55],  [57],  [57]]     
+sliceVal = [[ 0],  [ 0],  [ 0],  [ 1],  [ 0],  [ 0],  [ 0],  [ 1]]  
 dur =      [[16],  [16],  [16],  [16],  [16],  [16],  [16],  [16]]
 
 stop = len(posVal)
@@ -50,8 +50,6 @@ if stop > 0 :
     # for i in range(len(posVal)):
     #     posEmphasis.append(Library.calcEmphasis(posVal[i], 4, 0.5, 0.25))
     events, count = Library.combineBars(posVal, midiVal, dur, posEmphasis, sliceVal, maskArray)
-
-
 
 #  Wait to send out the OSC message
 if waitTime > 0.0:

@@ -20,7 +20,7 @@ client = SimpleUDPClient(Library.SENDIP, Library.SENDPORT)
 posVal = [[0], [0], [0], [0]]
 dur = [[16], [16], [16], [16]]
 slice = [[0], [0], [0], [0]]
-notes = [[41], [41], [41], [41]]
+notes = [[41], [41], [41], [43]]
 
 if playPhrase == 2:
     posVal = [[0], [0], [0], [0]]

@@ -47,6 +47,7 @@ cd Documents/DA_CHmUsiCK/Song/
 # Let p1 play for longer
 ./41_Guitar.py p1
 
+
 ./41_Guitar.py p2
 
 # ===============================================
@@ -54,6 +55,12 @@ cd Documents/DA_CHmUsiCK/Song/
 # ===============================================
 
 ./41_Guitar.py p1 & ./41_Guitar.py p2 w19.84
+
+# ===============================================
+# INTORDUCE PIANO ON chorus
+# ===============================================
+
+./41_Guitar.py p1 & ./41_Guitar.py p2 w19.84 & ./31_Piano.py p2 w19.84
 
 # ===============================================
 # BRING IN THE PIANO WITH GUITAR
@@ -102,7 +109,7 @@ cd Documents/DA_CHmUsiCK/Song/
 #
 # ===============================================
 
-./62_Thunder.py r7 v0.03 & ./01_SongFade.py m64 d90.0 w13.1507 & ./71_73_Frogs_Break_LeftRight.py p1 w13.1507
+./62_Thunder.py r6 v0.03 & ./01_SongFade.py m64 d90.0 w13.1507 & ./71_73_Frogs_Break_LeftRight.py p1 w13.1507
 
 # ===============================================
 # START FROGS
