@@ -47,7 +47,6 @@ cd Documents/DA_CHmUsiCK/Song/
 # Let p1 play for longer
 ./41_Guitar.py p1
 
-
 ./41_Guitar.py p2
 
 # ===============================================
@@ -74,7 +73,7 @@ cd Documents/DA_CHmUsiCK/Song/
 # ALSO FADE OUT THE FROGS FOR LATER INTRODUCTION
 # ===============================================
 
-./01_SongFade.py m91 d-30.0 & ./61_Rain.py w20.0 
+./01_SongFade.py d-20.0 11,12,13,21,22,23,24,25,26,27,28,41,71,73 & ./02_SongFiltFade.py d-20.0 62,71,73 & ./61_Rain.py w20.0 
 
 # ===============================================
 # PIANO CHORDS THEN HOLDS THE LAST CHORD
@@ -109,7 +108,7 @@ cd Documents/DA_CHmUsiCK/Song/
 #
 # ===============================================
 
-./62_Thunder.py r6 v0.03 & ./01_SongFade.py m64 d90.0 w13.1507 & ./71_73_Frogs_Break_LeftRight.py p1 w13.1507
+./62_Thunder.py r6 v0.03 & ./02_SongFiltFade.py d240.0 62 & ./71_73_Frogs_Break_LeftRight.py p1 w13.1507 & ./02_SongFiltFade.py d120.0 71,73 w13.1507 & ./01_SongFade.py d90.0 71,73 w13.1507
 
 # ===============================================
 # START FROGS
@@ -149,11 +148,11 @@ cd Documents/DA_CHmUsiCK/Song/
 # FROGS REPRISE
 # ===============================================
 
-./72_Frogs_Break_Mid.py p10 r3
+./72_Frogs_Break_Mid.py p10 & ./02_SongFiltFade.py 72 d-60.0 & ./01_SongFade.py 72 d-120.0
 
 # ===============================================
 # FADE OUT THE RAIN
 # ===============================================
 
-./01_SongFade.py m32 d-60.0
+./01_SongFade.py 61 d-60.0
 

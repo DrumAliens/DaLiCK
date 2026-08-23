@@ -13,6 +13,8 @@ https://github.com/dbrown2642/ChucK-live-code-performance
 
 with additional samples have been taken from Freesound.org https://freesound.org/ or recorded by myself
 
+
+
 ## Objective
 In the orginal version of CHmUsiCK a single livecode.ck file is reloaded (re-sporked in ChucK terminology) after a predefined number of bars. With the track being developed live with the changes being reloaded and turned into music.
 
@@ -25,6 +27,12 @@ What each instrument plays is controlled by sending out OSC messages to the Chuc
 Note: this approach doesn't give you as much control as you would get in a standard livecoding approach. With the elements of the song/code having to be generated before each performance.
 
 <h2 align="center"> You are more conducting than livecoding </h2>
+
+An example of the what you can do with the software is given here 
+
+https://drumaliens.bandcamp.com/track/bastardisation-of-a-theme-by-dustin-brown-frogs-and-rain
+
+and the set of instructions to generate this is given in Song/SongNotes.txt and Song/SongNotes.ipynb
 
 # Operating System
 This code has been tested and run on MAC (I have run previous version in Ubuntu but I have not tested recent versions I don't have a powerfull enough computer to do this).
@@ -115,16 +123,36 @@ This allows you to fade individual or multiple instruments using the following i
 | Command | Example | Type | Description |
 | --- | --- | --- | --- |
 |**Rate**  |r-10.0   |float |reduces the volume of the instrument linearly. The number indicates the decay time in seconds  |\
-|**Mark**    |m10  |integer |fade instruments starting in 1X and 3X |\
 |**Wait time**  |w10.0 |float   |defines a wait time/delay of 10.0 seconds before the python sends out the OSC message (0.0) |\
 
-The mark information is converted into binary in ChucK to control specific instruments to fade. The leading number of the instrument file indicates the bit being enabled
+To choose which instrumment this effects just provide the numbers either as a comma separated or space separated list. So for example to fade out the drums over the next 30 seconds 
 
-Note: for all of the instuments the default is that the fader is set to one. However, it is also possible to fade in an instrument using a positive time but you would first have to fade that instrument to zero using a negative rate.
+```bash
+    $ ./01_SongFade.py r-30.0 11,12,13
+```
+
+Note: for all of the instuments the default is that the fader is set to one. However, it is also possible to fade in an instrument using a positive time but you would first have to fade that instrument to zero using a negative time.
+
+## 02_SongFiltFade.py
+
+This allows you to control the frequency of a Low Pass Filter for an individual or multiple instruments using the following input arguements (currently only implemented in Livecode_62_Thunder.ck, Livecode_71_Frogs_Left_Break.ck, Livecode_72_Frogs_Mid_Break.ck and Livecode_73_Frogs_Right_Break.ck). The start and end frequency is set in the ChucK program for each individual instrument.
+
+| Command | Example | Type | Description |
+| --- | --- | --- | --- |
+|**Rate**  |r-10.0   |float |reduces the volume of the instrument linearly. The number indicates the decay time in seconds  |\
+|**Wait time**  |w10.0 |float   |defines a wait time/delay of 10.0 seconds before the python sends out the OSC message (0.0) |\
+
+To choose which instrumment this effects just provide the numbers either as a comma separated or space separated list. So for example to change the frequency of the LPF on the frogs over the next 30 seconds 
+
+```bash
+    $ ./02_SongFiltFade.py r30.0 71 72 73
+```
+
+Note: for all of the instuments the default is that the fader is set to one. However, it is also possible to fade in an instrument using a positive time but you would first have to fade that instrument to zero using a negative time.
 
 ## Instrument files
 
-Each instrument is grouped with the leading number categorises the type of instrument, this then allows 10 versions of the same instrument if required
+Each instrument is grouped with the leading number categorises the type of instrument, this then allows multiple versions of the same instrument if required
 - 1X drums
 - 2X vocals
 - 3X piano

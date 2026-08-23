@@ -18,7 +18,7 @@ Library.MIDIROOTNOTE + Library.chopMidiOffset => float midiRootNote;
 // Map out the slices in the sample
 sampleEnd / sampleHz => float sliceNoteSec;
 
-1 => int songFadeEnblIndx;
+"23" => string instrEnblStr;
 
 // Setup the envelope
 0.05 => float rampTimeSec;
@@ -76,7 +76,6 @@ int oscInstrArraySliceIndx[arrayLen];
 int sampleSliceIndx[arrayLen];
 
 4.0 => float oscFadeDur;
-int oscFadeEnbleArray[16];
 
 // Setup the initial counter     
 0 => int countLocl;
@@ -128,7 +127,7 @@ while(oscInstrPlay)
             Library.calcTimer(numBeats, beatDivision, songTempo, oscInstrShufflePercent) @=> timerInfo;
 
             0 => countLocl;
-            // Copy across the instrument information
+           // Copy across the instrument information
             for (0 => int i; i < arrayLen; i++) {
                 oscInstrArrayPos[i] => samplePos[i];
                 oscInstrArrayNote[i] => sampleNote[i];
@@ -146,7 +145,7 @@ while(oscInstrPlay)
     }
 
     // Master Fader 
-    if (oscFadeEnbleArray[songFadeEnblIndx] == 1 && oscMsgFadeRecvr > 0) {
+    if (oscMsgFadeRecvr > 0) {
         // Set the length of time to fade over
         Math.fabs(oscFadeDur)::second => fader[0].duration => fader[1].duration;
         if (oscFadeDur < 0.0) {
@@ -164,7 +163,7 @@ while(oscInstrPlay)
     // Loop round and play the sample slice
     0 => int sampleIndx;
     1 => int evenVal;
-   for (0 => int i; i < timerInfo.numPhraseDivisions; i++) {
+    for (0 => int i; i < timerInfo.numPhraseDivisions; i++) {
         // Play the sample if required and it's less than the stop number then play it
         if ((samplePos[sampleIndx] == i) && (countLocl < stopNumber) && (sampleNumNoteDivs[sampleIndx] > 0)) {
             // Only checks the probabilty when the other conditions are true        
@@ -257,12 +256,11 @@ fun void OscRecvr()
             }
 
             // Master Fade
-            if (msg.address == "/song/master/fade") {
+            if (msg.address == "/song/master/fade/" + instrEnblStr) {
                 // Only do something if the message is non zero
                 msg.getFloat(0) => oscFadeDur;
                 if (oscFadeDur != 0.0) {
                     msg.numArgs() => oscMsgFadeRecvr;
-                    Library.dec2Pos(msg.getInt(1)) @=> oscFadeEnbleArray;
                 }
             }
 

@@ -14,7 +14,7 @@ sampleEnd => buffer.pos;
 // Get the sample rate
 buffer.sampleRate() => float sampleHz;
 
-0 => int songFadeEnblIndx;
+"13" => string instrEnblStr;
 
 // Configure the delay
 0.015::second => delayLine.max; // Set maximum delay (e.g., 15ms)
@@ -71,7 +71,6 @@ Library.calcTimer(oscNumBeats, oscBeatDivision, oscSongTempo, oscInstrShufflePer
 1.0 => float oscInstrProb => float sampleProb;
 
 4.0 => float oscFadeDur;
-int oscFadeEnbleArray[16];
 
 // Setup the initial counter     
 0 => int countLocl;
@@ -163,7 +162,7 @@ while(oscInstrPlay)
     }
 
     // Master Fader 
-    if (oscFadeEnbleArray[songFadeEnblIndx] == 1 && oscMsgFadeRecvr > 0) {
+    if (oscMsgFadeRecvr > 0) {
         // Set the length of time to fade over
         Math.fabs(oscFadeDur)::second => faderL.duration => faderR.duration;
        if (oscFadeDur < 0.0) {
@@ -278,12 +277,11 @@ fun void OscRecvr()
             }
 
             // Master Fade
-            if (msg.address == "/song/master/fade") {
+            if (msg.address == "/song/master/fade/" + instrEnblStr) {
                 // Only do something if the message is non zero
                 msg.getFloat(0) => oscFadeDur;
                 if (oscFadeDur != 0.0) {
                     msg.numArgs() => oscMsgFadeRecvr;
-                    Library.dec2Pos(msg.getInt(1)) @=> oscFadeEnbleArray;
                 }
             }
 

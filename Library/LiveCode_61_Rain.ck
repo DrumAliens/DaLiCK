@@ -7,7 +7,7 @@ me.dir() + "Samples/frogsAnd/41937__dobroide__20071002.downpour.wav" => buffer.r
 buffer.samples() => buffer.pos;
 
 // 32dec
-5 => int songFadeEnblIndx;
+"61" => string instrEnblStr;
 
 // ============= DON'T CHANGE BEYOND HERE
 
@@ -28,7 +28,6 @@ buffer.samples() => buffer.pos;
 1.0 => float oscInstrGain;
 
 4.0 => float oscFadeDur;
-int oscFadeEnbleArray[16];
 
 // Start the OSC Message Receiver
 spork ~ OscRecvr();
@@ -92,7 +91,7 @@ while(oscInstrPlay)
 {
 
     // Master Fader 
-    if (oscFadeEnbleArray[songFadeEnblIndx] == 1 && oscMsgFadeRecvr > 0) {
+    if (oscMsgFadeRecvr > 0) {
         // Set the length of time to fade over
         Math.fabs(oscFadeDur)::second => fader[0].duration => fader[1].duration;
         if (oscFadeDur < 0.0) {
@@ -152,12 +151,11 @@ fun void OscRecvr()
             }
 
             // Master Fade
-            if (msg.address == "/song/master/fade") {
+            if (msg.address == "/song/master/fade/" + instrEnblStr) {
                 // Only do something if the message is non zero
                 msg.getFloat(0) => oscFadeDur;
                 if (oscFadeDur != 0.0) {
                     msg.numArgs() => oscMsgFadeRecvr;
-                    Library.dec2Pos(msg.getInt(1)) @=> oscFadeEnbleArray;
                 }
             }
 

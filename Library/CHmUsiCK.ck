@@ -481,12 +481,6 @@ public class CHmUsiCK extends Chugraph {
         return everyArray;
     }
 
-    // public int[] durCheck(int patLength, int midiNote)
-    // {
-
-    // }
-
-
     // Converts a rate to an "equivalent" midiNote
     public float rateToMidiNote(float rate)
     {

@@ -13,7 +13,7 @@ buffer.sampleRate() => float sampleHz;
 sampleEnd / sampleHz => float sliceNoteSec;
 0 => int sliceNotePos;
 
-0 => int songFadeEnblIndx;
+"11" => string instrEnblStr;
 
 // Setup the envelope
 0.02 => float rampTimeSec;
@@ -49,7 +49,6 @@ Library.calcTimer(oscNumBeats, oscBeatDivision, oscSongTempo, oscInstrShufflePer
 1.0 => float oscInstrProb => float sampleProb;
 
 4.0 => float oscFadeDur;
-int oscFadeEnbleArray[16];
 
 // Setup the initial counter     
 0 => int countLocl;
@@ -138,7 +137,7 @@ while(oscInstrPlay)
     }
 
     // Master Fader 
-    if (oscFadeEnbleArray[songFadeEnblIndx] == 1 && oscMsgFadeRecvr > 0) {
+    if (oscMsgFadeRecvr > 0) {
         // Set the length of time to fade over
         Math.fabs(oscFadeDur)::second => fader[0].duration => fader[1].duration;
         if (oscFadeDur < 0.0) {
@@ -218,12 +217,11 @@ fun void OscRecvr()
             }
 
             // Master Fade
-            if (msg.address == "/song/master/fade") {
+            if (msg.address == "/song/master/fade/" + instrEnblStr) {
                 // Only do something if the message is non zero
                 msg.getFloat(0) => oscFadeDur;
                 if (oscFadeDur != 0.0) {
                     msg.numArgs() => oscMsgFadeRecvr;
-                    Library.dec2Pos(msg.getInt(1)) @=> oscFadeEnbleArray;
                 }
             }
 

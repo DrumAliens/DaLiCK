@@ -9,7 +9,7 @@ sampleEnd => buffer.pos;
 1.0 => buffer.rate; 
 
 // 64dec
-6 => int songFadeEnblIndx;
+"74" => string instrEnblStr;
 
 // Get the sample rate
 buffer.sampleRate() => float sampleHz;
@@ -68,7 +68,6 @@ Library.calcTimer(oscNumBeats, oscBeatDivision, oscSongTempo, oscInstrShufflePer
 1.0 => float oscInstrProb => float sampleProb;
 
 4.0 => float oscFadeDur;
-int oscFadeEnbleArray[16];
 
 // Setup the initial counter     
 0 => int countLocl;
@@ -164,7 +163,7 @@ while(oscInstrPlay)
     }
 
     // Master Fader 
-    if (oscFadeEnbleArray[songFadeEnblIndx] == 1 && oscMsgFadeRecvr > 0) {
+    if (oscMsgFadeRecvr > 0) {
         // Set the length of time to fade over
         Math.fabs(oscFadeDur)::second => fader.duration;
         if (oscFadeDur < 0.0) {
@@ -275,15 +274,26 @@ fun void OscRecvr()
                 msg.getFloat(2) => oscSongTempo;
             }
 
-            // Master Fade
-            if (msg.address == "/song/master/fade") {
+           // Master Fade
+            if (msg.address == "/song/master/fade/" + instrEnblStr) {
                 // Only do something if the message is non zero
                 msg.getFloat(0) => oscFadeDur;
                 if (oscFadeDur != 0.0) {
                     msg.numArgs() => oscMsgFadeRecvr;
-                    Library.dec2Pos(msg.getInt(1)) @=> oscFadeEnbleArray;
                 }
             }
+
+            // // Filter Fade
+            // if (msg.address == "/song/master/filt") {
+            //     // Only do something if the message is non zero
+            //     msg.getFloat(0) => oscFiltFadeDur;
+            //     if (oscFiltFadeDur != 0.0) {
+            //         msg.numArgs() => oscMsgFiltFadeRecvr;
+
+            //         // Decode to work out whether current instrument is enabled
+            //         Library.decodeInstr(msg.getInt(1), msg.getInt(2), instrEnblStr) => oscFiltEnble; 
+            //     }
+            // }
 
             // Drums
             if (msg.address == oscInstrMsgName) {

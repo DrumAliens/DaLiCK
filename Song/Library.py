@@ -105,22 +105,22 @@ def decodeSongStructArg(argv):
 
     return numBeats, beatDivision, songTempo
 
-# Decode the command line data for the fading function
+# Decode the command line data for the fading functions
 def decodeFadeArg(argv):
-    # Read in any command line variables
     fadeDur = 0
-    maskDec = 0
     waitTime = 0
-    for indx in range(len(argv)):
-        string = str(argv[indx])
-        if 'd' in string[0].lower():
-            fadeDur = float(string[1:])
-        if 'm' in string[0].lower():
-            maskDec = int(string[1:])
-        if 'w' in string[0].lower():
-            waitTime = float(string[1:])
- 
-    return fadeDur, maskDec, waitTime
+    msgList = []
+
+    for raw in argv:
+        for string in raw.split(','):
+            # Ignore empty elements
+            if string != '':
+                msgList.append(string)
+            if 'w' in string[0].lower():
+                waitTime = float(string[1:])
+            if 'd' in string[0].lower():
+                fadeDur = float(string[1:])  
+    return  fadeDur, waitTime, msgList         
 
 # Check the duration so that it doesn't overlap and plays as one instrument
 def checkDuration(events, count, numBeats):

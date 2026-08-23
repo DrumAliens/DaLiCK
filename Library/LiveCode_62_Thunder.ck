@@ -1,5 +1,8 @@
 
-CHmUsiCK Library => SndBuf2 buffer => Envelope envelope[2] => dac;
+CHmUsiCK Library => SndBuf2 buffer => Envelope envelope[2] => LPF instrLPF[2] => dac;
+
+// Run the fader for the filter through into a blackhole
+Envelope faderFilt => blackhole;
 
 "/song/sounds/thunder" => string oscInstrMsgName;
 
@@ -21,14 +24,27 @@ sampleEnd / sampleHz => float sliceNoteSec;
 rampTimeSec::second => envelope[0].duration => envelope[1].duration;
 0.0 => envelope[0].value => envelope[1].value;
 
-// 32dec
-5 => int songFadeEnblIndx;
+// 
+"62" => string instrEnblStr;
+
+// Switch on the filter fader envelope
+1.0 => faderFilt.value;
+60.0 => float filtFadeDurABS;
+// Minimum filter cutoff
+500.0 => float minLPFFreq;
+// Maximum filter cutoff
+24000.0 => float maxLPFFreq => instrLPF[0].freq => instrLPF[1].freq;  
+// Work out the delta for spork function
+maxLPFFreq / minLPFFreq => float ratioLPFFreq;       
+// Filter resonance
+3.0 => instrLPF[0].Q => instrLPF[1].Q;  
 
 // ============= DON'T CHANGE BEYOND HERE
 
 0 => int oscMsgRecvr;
 0 => int oscMsgInstrRecvr;
 0 => int oscMsgFadeRecvr;
+0 => int oscMsgFiltFadeRecvr;
 
 // Map across the song parameters
 16 => int oscNumBeats;
@@ -47,7 +63,7 @@ Library.calcTimer(oscNumBeats, oscBeatDivision, oscSongTempo, oscInstrShufflePer
 1.0 => float oscInstrProb => float sampleProb;
 
 4.0 => float oscFadeDur;
-int oscFadeEnbleArray[16];
+4.0 => float oscFiltFadeDur;
 
 // Setup the initial counter     
 0 => int countLocl;
@@ -71,6 +87,9 @@ float sampleNoteTime[arrayLen];
 // Position of the slice within a sample 
 int oscInstrArraySliceIndx[arrayLen];
 int sampleSliceIndx[arrayLen];
+
+// Spork the modulation function to run concurrently
+spork ~ mapEnvelopeToFilter();
 
 // Start the OSC Message Receiver
 spork ~ OscRecvr();
@@ -113,6 +132,22 @@ while(oscInstrPlay == 1)
 
 		// Reset the osc message flag 
 		0 => oscMsgRecvr;
+    }
+
+    // Low Pass Filter Fader 
+    if (oscMsgFiltFadeRecvr > 0) {
+        // Set the length of time to fade over
+        Math.fabs(oscFiltFadeDur) => filtFadeDurABS;
+        filtFadeDurABS::second => faderFilt.duration;
+
+        if (oscFiltFadeDur < 0.0) {
+           faderFilt.keyOff();
+        }
+        else {
+           faderFilt.keyOn();
+        }
+        // Reset the osc message flag 
+        0 => oscMsgFiltFadeRecvr;
     }
 
     // Map across OSC Instrument changes 
@@ -166,6 +201,7 @@ while(oscInstrPlay == 1)
         -1 * evenVal => evenVal;
     }
 
+    //cherr <= "Thunder: \"" <= instrLPF[0].freq() <= IO.newline();  
 }  
 
 //----------------------------------------------------------------------------
@@ -191,9 +227,19 @@ fun void playSample(float playTime) {
 
     0 => finishPlaying;
 
-    // print stuff
     countLocl++;
     cherr <= "Finished Thunder: " <= countLocl <= IO.newline();        
+}
+
+//----------------------------------------------------------------------------
+// Background shred function to continuously map envelope output to filter frequency
+//----------------------------------------------------------------------------
+fun void mapEnvelopeToFilter() {
+    while (true) {
+        // faderFilt.value() outputs 0.0 to 1.0. Map this to the cut off frequency of the filter
+        minLPFFreq * Math.pow(ratioLPFFreq, (faderFilt.value() * filtFadeDurABS) / filtFadeDurABS) => instrLPF[0].freq  => instrLPF[1].freq;
+        timerInfo.divVal::second => now;   // Update every sample for maximum smoothness
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -235,16 +281,24 @@ fun void OscRecvr()
             }
 
             // Master Fade
-            if (msg.address == "/song/master/fade") {
+            if (msg.address == "/song/master/fade/" + instrEnblStr) {
                 // Only do something if the message is non zero
                 msg.getFloat(0) => oscFadeDur;
                 if (oscFadeDur != 0.0) {
                     msg.numArgs() => oscMsgFadeRecvr;
-                    Library.dec2Pos(msg.getInt(1)) @=> oscFadeEnbleArray;
                 }
             }
 
-             // Drums
+            // Filter Fade
+            if (msg.address == "/song/master/filt/" + instrEnblStr) {
+                // Only do something if the message is non zero
+                msg.getFloat(0) => oscFiltFadeDur;
+                if (oscFiltFadeDur != 0.0) {
+                    msg.numArgs() => oscMsgFiltFadeRecvr;
+                }
+            }
+
+            // Drums
             if (msg.address == oscInstrMsgName) {
                 msg.numArgs() => oscMsgInstrRecvr;
                 if (msg.numArgs() != 1) {
