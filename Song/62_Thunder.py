@@ -11,12 +11,6 @@ playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, p
 # Set up server and client for testing
 client = SimpleUDPClient(Library.SENDIP, Library.SENDPORT)
 
-# ==== Send out 
-# if stopNum == 0:
-#     client.send_message("/song/sounds/thunderstorm", [0.05 * playVolume, freqRatio, delayPhrase, playTime])
-# else:
-#     client.send_message("/song/sounds/thunderstorm", [stopNum])
-
 
 posVal =  [  0]  
 midiVal = [ Library.MIDIROOTNOTE]     

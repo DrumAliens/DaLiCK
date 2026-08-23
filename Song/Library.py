@@ -45,7 +45,7 @@ def decodeInstrArg(argv):
     playPhrase = 0
     playVolume = 1.0
     numPhrase = 99999999
-    maskArray = dec2Bin(15)
+    maskArray = []
     delayPhrase = 0
     stopNum = 0
     freqRatio = 1.0
@@ -53,35 +53,35 @@ def decodeInstrArg(argv):
     probVal = 1.0
     shufflePrecent = 50.0
     waitTime = 0.0
-    # revMix = 'a'
-    for indx in range(len(argv)):
-        string = str(argv[indx])
-        # Instrument commands
-        if 'p' in string[0].lower():
-            playPhrase = int(string[1:])
-        if 'v' in string[0].lower():
-            playVolume = float(string[1:])
-        if 'r' in string[0].lower():
-            numPhrase = int(string[1:])
-        if 'm' in string[0].lower():
-            maskArray = dec2Bin(int(string[1:]))
-        if 'd' in string[0].lower():
-            delayPhrase = int(string[1:])
-        if 's' in string[0].lower():
-            stopNum = int(string[1:])
-        if 'f' in string[0].lower():
-            freqRatio = float(string[1:])
-        if 'c' in string[0].lower():
-            # Limit probability to be between 0.0 and 1.0
-            probVal = min(max(float(string[1:]), 0.0), 1.0)
-        if 'h' in string[0].lower():
-            # Limit shuffle to be between 50% and 75%
-            shufflePrecent = min(max(float(string[1:]), 50.0), 75.0)
-        if 'w' in string[0].lower():
-            waitTime = float(string[1:])
 
-        if 'kill' in string[0:4].lower():
-            playInstr = 0    
+    # Command line is already separated by spaces so go through each in turn
+    for raw in argv:
+        # Split again if the string contains a comma
+        for string in raw.split(','):
+            if 'p' in string[0].lower():
+                playPhrase = int(string[1:])
+            elif 'v' in string[0].lower():
+                playVolume = float(string[1:])
+            elif 'r' in string[0].lower():
+                numPhrase = int(string[1:])
+            elif 'd' in string[0].lower():
+                delayPhrase = int(string[1:])
+            elif 's' in string[0].lower():
+                stopNum = int(string[1:])
+            elif 'f' in string[0].lower():
+                freqRatio = float(string[1:])
+            elif 'c' in string[0].lower():
+                # Limit probability to be between 0.0 and 1.0
+                probVal = min(max(float(string[1:]), 0.0), 1.0)
+            elif 'h' in string[0].lower():
+                # Limit shuffle to be between 50% and 75%
+                shufflePrecent = min(max(float(string[1:]), 50.0), 75.0)
+            elif 'w' in string[0].lower():
+                waitTime = float(string[1:])
+            elif 'kill' in string[0:4].lower():
+                playInstr = 0    
+            elif (string != '') and (string[0] != '.'):
+                maskArray.append(int(string))    
 
     return playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probVal, shufflePrecent, waitTime
 
@@ -111,15 +111,17 @@ def decodeFadeArg(argv):
     waitTime = 0
     msgList = []
 
+    # Command line is already separated by spaces so go through each in turn
     for raw in argv:
+        # Split again if the string contains a comma
         for string in raw.split(','):
-            # Ignore empty elements
-            if string != '':
-                msgList.append(string)
             if 'w' in string[0].lower():
                 waitTime = float(string[1:])
-            if 'd' in string[0].lower():
+            elif 'd' in string[0].lower():
                 fadeDur = float(string[1:])  
+            elif (string != '') and (string[0] != '.'):
+                msgList.append(string)    
+
     return  fadeDur, waitTime, msgList         
 
 # Check the duration so that it doesn't overlap and plays as one instrument
@@ -161,20 +163,20 @@ def checkDuration(events, count, numBeats):
 # allows more emphasis one the first beat and then different levels 
 # on and off the beat
 def calcEmphasis(posVal, numBeats, minorBeat, otherBeat):
-    res = []
+    res = copy.deepcopy(posVal)
     for i in range(len(posVal)):
-        # Maximum emphasis to first beat in the bar
-        if posVal[i] == 0:
-            res.append(1.0)
-        # the other on beats 
-        elif posVal[i] % numBeats == 0:
-            res.append(minorBeat)
-        # everything else
-        else:
-            res.append(otherBeat)        
+        for j in range(len(posVal[i])):
+            # Maximum emphasis to first beat in the bar
+            if posVal[i][j] == 0:
+                res[i][j] = 1.0
+            # the other on beats 
+            elif posVal[i][j] % numBeats == 0:
+                res[i][j] = minorBeat
+            # everything else
+            else:
+                res[i][j] = otherBeat        
     
     return res
-
     
 # Fill a siilar sized array/list with 1.0's
 def fillOnes(posVal):
@@ -192,50 +194,18 @@ def fillWith(posVal, loclVal):
             res[i][j] = loclVal
     return res
 
-# Combine 4 bars of instrumentation to create a complete set of information
-def combine4Bars(posVal, notes, dur, posEmphasis, slice, maskArray):
-    events = []
-    count = 0
-    indx = 0
-    if maskArray[3] > 0:
-        for i in range(len(posVal[indx])):
-            events.extend([posVal[indx][i], notes[indx][i], dur[indx][i], posEmphasis[indx][i], slice[indx][i]])
-            count += 1
-    indx += 1
-    if maskArray[2] > 0:
-        for i in range(len(posVal[indx])):
-            events.extend([posVal[indx][i] + 16, notes[indx][i], dur[indx][i], posEmphasis[indx][i], slice[indx][i]])
-            count += 1
-    indx += 1
-    if maskArray[1] > 0:
-        for i in range(len(posVal[indx])):
-            events.extend([posVal[indx][i] + 32, notes[indx][i], dur[indx][i], posEmphasis[indx][i], slice[indx][i]])
-            count += 1
-    indx += 1
-    if maskArray[0] > 0:
-        for i in range(len(posVal[indx])):
-            events.extend([posVal[indx][i] + 48, notes[indx][i], dur[indx][i], posEmphasis[indx][i], slice[indx][i]])
-            count += 1
-
-    return events, count
-
-
 # Combine bars of instrumentation to create a complete set of information
 def combineBars(posVal, notes, dur, posEmphasis, slice, maskArray):
     events = []
     count = 0
     div = 0
-    arrayIndx = 3
     for indx in range(len(posVal)):
-        if maskArray[arrayIndx] > 0:
+        # Pass through the data if mask Array is empty or if there are specific posisions
+        if ((indx + 1) in maskArray) or (len(maskArray) == 0):
             for i in range(len(posVal[indx])):
                 events.extend([posVal[indx][i] + div, notes[indx][i], dur[indx][i], posEmphasis[indx][i], slice[indx][i]])
                 count += 1
         div += 16
-        arrayIndx -= 1
-        # Reset the indx counter
-        if arrayIndx < 0:
-            arrayIndx = 3
 
     return events, count
 

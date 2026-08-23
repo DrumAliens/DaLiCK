@@ -125,7 +125,7 @@ This allows you to fade individual or multiple instruments using the following i
 |**Rate**  |r-10.0   |float |reduces the volume of the instrument linearly. The number indicates the decay time in seconds  |\
 |**Wait time**  |w10.0 |float   |defines a wait time/delay of 10.0 seconds before the python sends out the OSC message (0.0) |\
 
-To choose which instrumment this effects just provide the numbers either as a comma separated or space separated list. So for example to fade out the drums over the next 30 seconds 
+To choose which instrument this effects just provide the instrument number/s either as a comma separated or space separated list. So for example to fade out the drums over the next 30 seconds 
 
 ```bash
     $ ./01_SongFade.py r-30.0 11,12,13
@@ -142,7 +142,7 @@ This allows you to control the frequency of a Low Pass Filter for an individual 
 |**Rate**  |r-10.0   |float |reduces the volume of the instrument linearly. The number indicates the decay time in seconds  |\
 |**Wait time**  |w10.0 |float   |defines a wait time/delay of 10.0 seconds before the python sends out the OSC message (0.0) |\
 
-To choose which instrumment this effects just provide the numbers either as a comma separated or space separated list. So for example to change the frequency of the LPF on the frogs over the next 30 seconds 
+To choose which instrument this effects just provide the instrument number/s either as a comma separated or space separated list. So for example to change the frequency of the LPF on the frogs over the next 30 seconds 
 
 ```bash
     $ ./02_SongFiltFade.py r30.0 71 72 73
@@ -166,7 +166,6 @@ You can use the following command line arguements to control what is played. The
 | --- | --- | --- | --- |
 |**Repeat**  |r4   |integer |repeat this instrument for 4 cycles (99999999) |\
 |**Phrase**  |p2   |integer |play the second 2nd programmed pattern in the script (default 1) |\
-|**Mark**    |m10  |integer |selects bar 1 and bar 3 parts of the phrase to be played converts decimal to binary with the MSB being bar 1 (15) |\
 |**Chance**  |c0.5  |float |allows you to introduce some randomness into the song probability that that sample will be played (1.0) |\
 |**Delay**   |d2   |integer |delays playing this phrase for 2 cycles (0) |\
 |**Stop**    |s2   |integer |stops playing that instrument after 2 cycles (0) |\
@@ -174,11 +173,18 @@ You can use the following command line arguements to control what is played. The
 |**sHuffle**  |h66.0 |float   |defines a shuffle relationship of the even and odd beats range 50.0 to 75.0 (50.0)  |\
 |**Wait time**  |w10.0 |float   |defines a wait time/delay of 10.0 seconds before the python sends out the OSC message (0.0) |\
 
+You can also mask out which bars are to be played by providing the bar number either as a comma separated or space separated list, for example
+
+```bash
+./24_Chop.py 1,2
+```
+will play the first and second bar of the phrase. Note: if you specify a bar that is out of the range of the number of bars in the songs phrase then it will be ignored
+
 Note:
 - **S**top doesn't change what that instrument is playing where as **R**epeat also updates the instrument parameters
 - **W**ait delays sending out OSC messages this then allows you to chain several parameters to the same instrument by creating various instances of the python script using && in the command line. **D**elay only allows a single future change to an instrument
 
-Note: you can create instruments which are not syncronised to the song phrases. For example the environmental instrument LiveCode_61_Rain.ck is initiated in synch with the song timing, to allow it to start at a point defined in the song, but then runs on it's own timing which is defined by looping parts of a sample.
+Note: you can create instruments which are not synchronised to the song phrases. For example the environmental instrument LiveCode_61_Rain.ck is initiated in synch with the song timing, to allow it to start at a point defined in the song, but then runs on it's own timing which is defined by looping parts of a sample.
 
 ### Multiple instances of python OSC scripts 
 By using && in the command line allows you to create complex instrument changes to occur at the same time and/or delayed using **W**ait command, see SongNotes.txt in Song directory for a number of different examples.

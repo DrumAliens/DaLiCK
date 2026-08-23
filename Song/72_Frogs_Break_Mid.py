@@ -12,16 +12,6 @@ playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, p
 client = SimpleUDPClient(Library.SENDIP, Library.SENDPORT)
 
 phraseNumDivs = 128
-# events = []
-# count = 0
-# if playPhrase < 5:
-#     posVal =  []  
-#     midiVal = []     
-#     sliceVal = []  
-#     dur =      []
-#     for i in range(len(posVal)):
-#         events.extend([posVal[i], midiVal[i], dur[i], 1.0, sliceVal[i]])
-#         count += 1
 
 # Short Short Long Long
 if playPhrase <= 1:
@@ -54,10 +44,7 @@ if playPhrase >= 10:
 
 stop = len(posVal)
 if stop > 0 :
-    # posEmphasis = Library.fillWith(posVal, 1.0)
-    posEmphasis = []
-    for i in range(len(posVal)):
-        posEmphasis.append(Library.calcEmphasis(posVal[i], 4, 0.5, 0.25))
+    posEmphasis = Library.fillWith(posVal, 1.0)
     events, count = Library.combineBars(posVal, midiVal, dur, posEmphasis, sliceVal, maskArray)
 
 #  Wait to send out the OSC message
