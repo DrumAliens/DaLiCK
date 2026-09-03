@@ -5,7 +5,7 @@ import sys
 import Library
 
 # Read in any command line variables
-playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probVal, shufflePercent, waitTime = Library.decodeInstrArg(sys.argv)
+playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probPlay, probGlitch, probSlice, shufflePercent, waitTime = Library.decodeInstrArg(sys.argv)
 
 
 # Set up server and client for testing
@@ -26,7 +26,7 @@ if playPhrase > 0:
 events = []
 count = 0
 for i in range(len(posVal)):
-    events.extend([posVal[i], midiVal[i], dur[i], 1.0, sliceVal[i]])
+    events.extend([posVal[i], midiVal[i], dur[i], 1.0, sliceVal[i], 1.0, 1.0])
     count += 1
 
 if stopNum == 0:
@@ -35,7 +35,7 @@ if stopNum == 0:
     # eventsMod = Library.checkDuration(events, count, phraseNumDivs)
 
     #  Build the OSC Message
-    oscMessage = [playVolume, numPhrase, delayPhrase, probVal, shufflePercent]
+    oscMessage = [playVolume, numPhrase, delayPhrase, probPlay, probGlitch, probSlice, shufflePercent]
     oscMessage.append(count)
     oscMessage.extend(events)
     client.send_message("/song/sounds/thunder", oscMessage)

@@ -6,7 +6,7 @@ import time
 import Library
 
 # Read in any command line variables
-playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probVal, shufflePercent, waitTime = Library.decodeInstrArg(sys.argv)
+playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probPlay, probGlitch, probSlice, shufflePercent, waitTime = Library.decodeInstrArg(sys.argv)
 
 # Set up server and client for testing
 client = SimpleUDPClient(Library.SENDIP, Library.SENDPORT)
@@ -34,6 +34,15 @@ if playPhrase == 3:
     sliceVal = [[ 6,  6,  6,  6], [ 5,  5,  5,  5], [ 6,  6,  6,  6], [ 5,  5,  5,  5], [ 0,   1,   2,   3], [4,   5,  6], [ 0,   1,   2,   3], [4,   5,  6]]  
     dur =      [[ 4,  4,  4,  4], [ 4,  4,  4,  4], [ 4,  4,  4,  4], [ 4,  4,  4,  4], [ 4,   4,   4,   4], [4,   4,  4], [ 4,   4,   4,   4], [4,   4,  4]]
 
+# Workout the midi note to speed up the sample to fit to the bpm
+midiNote = Library.rateToMidiNote(1.29)
+if playPhrase == 4:
+    posVal =   [[ 0],       [ ],       [ 0], [ ],       [ 0], [ ],       [ 0], [ ]]
+    midiVal =  [[midiNote], [ ], [midiNote], [ ], [midiNote], [ ], [midiNote], [ ]]     
+    sliceVal = [[-1],       [ ],       [-1], [ ],       [-1], [ ],       [-1], [ ]]  
+    dur =      [[32],       [ ],       [32], [ ],       [32], [ ],       [32], [ ]]
+
+
 # Frogs reprise
 if playPhrase >= 10:
     posVal =   [[ ], [ ], [0 ], [ ], [ ], [ ], [0 ], [0]]
@@ -41,11 +50,14 @@ if playPhrase >= 10:
     sliceVal = [[ ], [ ], [0 ], [ ], [ ], [ ], [0 ], [ 0]]  
     dur =      [[ ], [ ], [4 ], [ ], [ ], [ ], [4 ], [ 4]]
 
+# Additional arrays to influence instrument behaviour
+effectArray1 = Library.fillWith(posVal, 1.0)
+effectArray2 = Library.fillWith(posVal, 1.0)
 
 stop = len(posVal)
 if stop > 0 :
     posEmphasis = Library.fillWith(posVal, 1.0)
-    events, count = Library.combineBars(posVal, midiVal, dur, posEmphasis, sliceVal, maskArray)
+    events, count = Library.combineBars(posVal, midiVal, dur, posEmphasis, sliceVal, effectArray1, effectArray2, maskArray)
 
 #  Wait to send out the OSC message
 if waitTime > 0.0:
@@ -58,7 +70,7 @@ if stopNum == 0:
     # eventsMod = Library.checkDuration(events, count, phraseNumDivs)
 
     #  Build the OSC Message
-    oscMessage = [0.75*0.08*playVolume, numPhrase, delayPhrase, probVal, shufflePercent]
+    oscMessage = [0.75*0.08*playVolume, numPhrase, delayPhrase, probPlay, probGlitch, probSlice, shufflePercent]
     oscMessage.append(count)
     oscMessage.extend(events)
     client.send_message("/song/sounds/frogs_mid", oscMessage)

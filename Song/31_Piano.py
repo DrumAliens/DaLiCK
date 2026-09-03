@@ -8,7 +8,7 @@ import time
 import Library
 
 # Read in any command line variables
-playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probVal, shufflePercent, waitTime = Library.decodeInstrArg(sys.argv)
+playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probPlay, probGlitch, probSlice, shufflePercent, waitTime = Library.decodeInstrArg(sys.argv)
 
 # Set up server and client for testing
 client = SimpleUDPClient(Library.SENDIP, Library.SENDPORT)
@@ -40,14 +40,18 @@ phraseNumDivs = 16 * numBars
 # Don't want and emphasis but need the elements
 posEmphasis = Library.fillWith(posVal,1.0)
 
+# Additional arrays to influence instrument behaviour
+effectArray1 = Library.fillWith(posVal, 1.0)
+effectArray2 = Library.fillWith(posVal, 1.0)
+
 # Combine the 4 bars
-events, count = Library.combineBars(posVal, notes, dur, posEmphasis, slice, maskArray)
+events, count = Library.combineBars(posVal, notes, dur, posEmphasis, slice, effectArray1, effectArray2, maskArray)
 
 # Sort out the duration so that plays as one instrument
 # eventsMod = Library.checkDuration(events, count, phraseNumDivs)
 
 #  Build the OSC Message
-oscMessage = [0.08*playVolume, numPhrase, delayPhrase, probVal, shufflePercent]
+oscMessage = [0.08*playVolume, numPhrase, delayPhrase, probPlay, probGlitch, probSlice, shufflePercent]
 oscMessage.append(count)
 oscMessage.extend(events)
 

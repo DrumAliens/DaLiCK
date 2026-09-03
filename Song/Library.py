@@ -1,6 +1,7 @@
 #!../.venv/bin/python
 import socket, errno
 import copy
+import math
 from typing import List, Any
 
 # ======================================
@@ -30,6 +31,11 @@ def dec2Bin(val):
 
     return array        
 
+# Converts a rate to an "equivalent" midiNote
+def rateToMidiNote(rate):
+    # Seems like log2 doesn't work in chuck
+    return 12.0 * (math.log(rate) / math.log(2.0)) + MIDIROOTNOTE;
+    
 def set_filter(address: str, *args: List[Any]) -> None:
     # Check input length and type
     if not len(args) == 1 or type(args[0]) is not int:
@@ -50,7 +56,11 @@ def decodeInstrArg(argv):
     stopNum = 0
     freqRatio = 1.0
     playInstr = 1
-    probVal = 1.0
+    # Set probabilities to zero
+    probPlay = 0.0
+    probSlice = 0.0
+    probGlitch = 0.0
+    # Shuffle percentage to even
     shufflePrecent = 50.0
     waitTime = 0.0
 
@@ -66,13 +76,19 @@ def decodeInstrArg(argv):
                 numPhrase = int(string[1:])
             elif 'd' in string[0].lower():
                 delayPhrase = int(string[1:])
-            elif 's' in string[0].lower():
+            elif 'q' in string[0].lower():
                 stopNum = int(string[1:])
             elif 'f' in string[0].lower():
                 freqRatio = float(string[1:])
             elif 'c' in string[0].lower():
                 # Limit probability to be between 0.0 and 1.0
-                probVal = min(max(float(string[1:]), 0.0), 1.0)
+                probPlay = min(max(float(string[1:]), 0.0), 1.0)
+            elif 's' in string[0].lower():
+                # Limit probability to be between 0.0 and 1.0
+                probSlice = min(max(float(string[1:]), 0.0), 1.0)
+            elif 'g' in string[0].lower():
+                # Limit probability to be between 0.0 and 1.0
+                probGlitch = min(max(float(string[1:]), 0.0), 1.0)
             elif 'h' in string[0].lower():
                 # Limit shuffle to be between 50% and 75%
                 shufflePrecent = min(max(float(string[1:]), 50.0), 75.0)
@@ -83,7 +99,7 @@ def decodeInstrArg(argv):
             elif (string != '') and (string[0] != '.'):
                 maskArray.append(int(string))    
 
-    return playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probVal, shufflePrecent, waitTime
+    return playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probPlay, probGlitch, probSlice, shufflePrecent, waitTime
 
 # Decode the command line data for the song structure
 def decodeSongStructArg(argv):
@@ -132,7 +148,9 @@ def checkDuration(events, count, numBeats):
     durRaw = []
     ampRaw = []
     slice = []
-    indx = 5
+    effect1 = []
+    effect2 = []
+    indx = 7
     # Extract all of the data back out into new rows
     for i in range(count):
         pos.append(events[0 + i * indx])
@@ -140,6 +158,8 @@ def checkDuration(events, count, numBeats):
         durRaw.append(events[2 + i * indx])
         ampRaw.append(events[3 + i * indx])
         slice.append(events[4 + i * indx])
+        effect1.append(events[5 + i * indx])
+        effect2.append(events[6 + i * indx])
 
     # Work out the duration
     durNew = []
@@ -147,12 +167,6 @@ def checkDuration(events, count, numBeats):
         durNew.append(min(durRaw[i], pos[i+1] - pos[i]))
     durNew.append(min(durRaw[-1], numBeats - pos[-1] + pos[0]))
     
-    # The calculated value of sum should be equal or less than numBeats
-    # sum = 0
-    # for i in durNew:
-    #     sum = sum + i
-    # print(sum)    
-
     # Push the duration back into the data set
     for i in range(count):
         events[2 + i * indx] = durNew[i]
@@ -195,7 +209,7 @@ def fillWith(posVal, loclVal):
     return res
 
 # Combine bars of instrumentation to create a complete set of information
-def combineBars(posVal, notes, dur, posEmphasis, slice, maskArray):
+def combineBars(posVal, notes, dur, posEmphasis, slice, effectArray1, effectArray2, maskArray):
     events = []
     count = 0
     div = 0
@@ -203,7 +217,7 @@ def combineBars(posVal, notes, dur, posEmphasis, slice, maskArray):
         # Pass through the data if mask Array is empty or if there are specific posisions
         if ((indx + 1) in maskArray) or (len(maskArray) == 0):
             for i in range(len(posVal[indx])):
-                events.extend([posVal[indx][i] + div, notes[indx][i], dur[indx][i], posEmphasis[indx][i], slice[indx][i]])
+                events.extend([posVal[indx][i] + div, float(notes[indx][i]), dur[indx][i], posEmphasis[indx][i], slice[indx][i], float(effectArray1[indx][i]), float(effectArray2[indx][i])])
                 count += 1
         div += 16
 

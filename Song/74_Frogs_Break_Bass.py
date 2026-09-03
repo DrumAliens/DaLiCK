@@ -6,7 +6,7 @@ import time
 import Library
 
 # Read in any command line variables
-playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probVal, shufflePercent, waitTime = Library.decodeInstrArg(sys.argv)
+playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probPlay, probGlitch, probSlice, shufflePercent, waitTime = Library.decodeInstrArg(sys.argv)
 
 # Set up server and client for testing
 client = SimpleUDPClient(Library.SENDIP, Library.SENDPORT)
@@ -14,16 +14,21 @@ client = SimpleUDPClient(Library.SENDIP, Library.SENDPORT)
 #  Intro
 phraseNumDivs = 128
 
-posVal =   [[ 0],  [ 0],  [ 0],  [ 0],  [ 0],  [ 0],  [ 0],  [ 0]]  
+# posVal =   [[ 12],  [ 12],  [12],  [ 12],  [ 12],  [ 12],  [ 12],  [ 12]]  
+loclVal = 8
+posVal =   [[loclVal ],  [ loclVal],  [loclVal],  [ loclVal],  [ loclVal],  [ loclVal],  [ loclVal],  [ loclVal]]  
 midiVal =  [[57],  [56],  [57],  [56],  [57],  [55],  [57],  [57]]     
 sliceVal = [[ 0],  [ 0],  [ 0],  [ 1],  [ 0],  [ 0],  [ 0],  [ 1]]  
 dur =      [[16],  [16],  [16],  [16],  [16],  [16],  [16],  [16]]
+# Additional arrays to influence instrument behaviour
+effectArray1 = Library.fillWith(posVal, 1.0)
+effectArray2 = Library.fillWith(posVal, 1.0)
 
 stop = len(posVal)
 if stop > 0 :
     posEmphasis = Library.fillWith(posVal, 1.0)
 
-    events, count = Library.combineBars(posVal, midiVal, dur, posEmphasis, sliceVal, maskArray)
+    events, count = Library.combineBars(posVal, midiVal, dur, posEmphasis, sliceVal, effectArray1, effectArray2, maskArray)
 
 #  Wait to send out the OSC message
 if waitTime > 0.0:
@@ -36,7 +41,7 @@ if stopNum == 0:
     # eventsMod = Library.checkDuration(events, count, phraseNumDivs)
 
     #  Build the OSC Message
-    oscMessage = [0.75*0.1*playVolume, numPhrase, delayPhrase, probVal, shufflePercent]
+    oscMessage = [0.75*0.1*playVolume, numPhrase, delayPhrase, probPlay, probGlitch, probSlice, shufflePercent]
     oscMessage.append(count)
     oscMessage.extend(events)
     # oscMessage.extend(eventsMod)

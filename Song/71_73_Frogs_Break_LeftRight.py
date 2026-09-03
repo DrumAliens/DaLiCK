@@ -8,7 +8,7 @@ import Library
 sleepTime = 0.1
 
 # Read in any command line variables
-playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probVal, shufflePercent, waitTime = Library.decodeInstrArg(sys.argv)
+playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probPlay, probGlitch, probSlice, shufflePercent, waitTime = Library.decodeInstrArg(sys.argv)
 
 # Set up server and client for testing
 client = SimpleUDPClient(Library.SENDIP, Library.SENDPORT)
@@ -111,16 +111,17 @@ if playPhrase == 12:
     sliceValR = [1,  6,  6,   0,   0]  
     durR =      [4,  4,  4,   4,   4]
 
+
 eventsL = []
 countL = 0
 for i in range(len(posValL)):
-    eventsL.extend([posValL[i], midiValL[i] + 4, durL[i], 1.0, sliceValL[i]])
+    eventsL.extend([posValL[i], float(midiValL[i] + 4), durL[i], 1.0, sliceValL[i], 1.0, 1.0])
     countL += 1
 
 eventsR = []
 countR = 0
 for i in range(len(posValR)):
-    eventsR.extend([posValR[i], midiValR[i] + 4, durR[i], 1.0, sliceValR[i]])
+    eventsR.extend([posValR[i], float(midiValR[i] + 4), durR[i], 1.0, sliceValR[i], 1.0, 1.0])
     countR += 1
 
 #  Wait to send out the OSC message
@@ -131,14 +132,14 @@ if waitTime > 0.0:
 if stopNum == 0:
 
     #  Build the OSC Message Left
-    oscMessage = [0.75*0.15*playVolume, numPhrase, delayPhrase, probVal, shufflePercent]
+    oscMessage = [0.75*0.15*playVolume, numPhrase, delayPhrase, probPlay, probGlitch, probSlice, shufflePercent]
     oscMessage.append(countL)
     oscMessage.extend(eventsL)
     client.send_message("/song/sounds/frogs_left", oscMessage)
 
     time.sleep(sleepTime)
     #  Build the OSC Message Right
-    oscMessage = [0.15*playVolume, numPhrase, delayPhrase, probVal, shufflePercent]
+    oscMessage = [0.15*playVolume, numPhrase, delayPhrase, probPlay, probGlitch, probSlice, shufflePercent]
     oscMessage.append(countR)
     oscMessage.extend(eventsR)
 

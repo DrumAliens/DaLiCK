@@ -18,7 +18,7 @@ public class CHmUsiCK extends Chugraph {
     72 => int MIDIROOTNOTE;
 
     // Maximum size of the arrays that store the note positions
-    64 => int MAXNUMNOTES;
+    70 => int MAXNUMNOTES;
 
     // OSC port to listen on for instructions
     49162 => int OSCINPORT;

@@ -6,7 +6,7 @@ import time
 import Library
 
 # Read in any command line variables
-playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probVal, shufflePercent, waitTime = Library.decodeInstrArg(sys.argv)
+playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probPlay, probGlitch, probSlice, shufflePercent, waitTime = Library.decodeInstrArg(sys.argv)
 
 # Set up server and client for testing
 client = SimpleUDPClient(Library.SENDIP, Library.SENDPORT)
@@ -17,12 +17,15 @@ rootNote = Library.MIDIROOTNOTE
 if playPhrase < 1:
     
     posVal = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]]  
-    slice = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]]
-    dur = Library.fillWith(posVal, 99)
+    slice =  [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]]
     notes = Library.fillWith(posVal, rootNote)
+    dur = Library.fillWith(posVal, 99)
     posEmphasis = Library.fillWith(posVal, 1.0)
+    # Additional arrays to influence instrument behaviour
+    effectArray1 = [[0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0], [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]]
+    effectArray2 = Library.fillWith(posVal, 1.0)
 
-    events, count = Library.combineBars(posVal, notes, dur, posEmphasis, slice, maskArray)
+    events, count = Library.combineBars(posVal, notes, dur, posEmphasis, slice, effectArray1, effectArray2, maskArray)
 
     # Sort out the duration so that plays as one instrument
     eventsMod = Library.checkDuration(events, count, phraseNumDivs)
@@ -33,12 +36,14 @@ else:
     midiVal = [[], [], [], [rootNote, rootNote, rootNote, rootNote]]
     posEmphasis = [[], [], [], [1.0, 0.5, 0.5, 0.5]]
     sliceVal = [[], [], [], [0, 0, 0, 0]]  
+    # Additional arrays to influence instrument behaviour
+    effectArray1 = Library.fillWith(posVal, 1.0)
+    effectArray2 = Library.fillWith(posVal, 1.0)
 
-    eventsMod, count = Library.combineBars(posVal, midiVal, durVal, posEmphasis, sliceVal, maskArray)
-
+    eventsMod, count = Library.combineBars(posVal, midiVal, durVal, posEmphasis, sliceVal, effectArray1, effectArray2, maskArray)
 
 #  Build the OSC Message
-oscMessage = [0.06*playVolume, numPhrase, delayPhrase, probVal, shufflePercent]
+oscMessage = [0.06*playVolume, numPhrase, delayPhrase, probPlay, probGlitch, probSlice, shufflePercent]
 oscMessage.append(count)
 oscMessage.extend(eventsMod)
 

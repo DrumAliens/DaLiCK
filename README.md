@@ -13,8 +13,6 @@ https://github.com/dbrown2642/ChucK-live-code-performance
 
 with additional samples have been taken from Freesound.org https://freesound.org/ or recorded by myself
 
-
-
 ## Objective
 In the orginal version of CHmUsiCK a single livecode.ck file is reloaded (re-sporked in ChucK terminology) after a predefined number of bars. With the track being developed live with the changes being reloaded and turned into music.
 
@@ -166,9 +164,11 @@ You can use the following command line arguements to control what is played. The
 | --- | --- | --- | --- |
 |**Repeat**  |r4   |integer |repeat this instrument for 4 cycles (99999999) |\
 |**Phrase**  |p2   |integer |play the second 2nd programmed pattern in the script (default 1) |\
-|**Chance**  |c0.5  |float |allows you to introduce some randomness into the song probability that that sample will be played (1.0) |\
+|**Chance**  |c0.5  |float |defines the probability that that sample will be played (0.0) |\
+|**Glitch**  |g0.5  |float |defines the probability that that current slice will have glitch effect applied to it (0.0) |\
+|**Slice**  |s0.5  |float |defines the probability that a different available slice will be used instead (0.0) |\
 |**Delay**   |d2   |integer |delays playing this phrase for 2 cycles (0) |\
-|**Stop**    |s2   |integer |stops playing that instrument after 2 cycles (0) |\
+|**Quiet**    |q2   |integer |stops playing that instrument after 2 cycles (0) |\
 |**Volume**  |v0.5 |float   |allows you to change the current volume (1.0) |\
 |**sHuffle**  |h66.0 |float   |defines a shuffle relationship of the even and odd beats range 50.0 to 75.0 (50.0)  |\
 |**Wait time**  |w10.0 |float   |defines a wait time/delay of 10.0 seconds before the python sends out the OSC message (0.0) |\
