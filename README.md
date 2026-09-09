@@ -16,11 +16,11 @@ with additional samples have been taken from Freesound.org https://freesound.org
 ## Objective
 In the orginal version of CHmUsiCK a single livecode.ck file is reloaded (re-sporked in ChucK terminology) after a predefined number of bars. With the track being developed live with the changes being reloaded and turned into music.
 
-In this version instruments have been split out into individual chuck files this allows for the following advantages
-- samples that blend across bars can play properly handled (any decays can play on and not overwritten)
-- instrument changes are only reloaded when a change is triggered
+In this version instruments have been split out into individual ChucK files this allows for the following advantages
+- samples that blend across bars can be properly handled (any decays can play on and not overwritten)
+- instrument changes are only reloaded when a change actually happens
 
-What each instrument plays is controlled by sending out OSC messages to the ChucK code which decodes this into a set of musical instructions. Importantly, as in CHmuSK any changes made to the song have to be sent at a point during the current phrase so that the changes can be instigated at the start of the new phrase. THe timing is and synching is handled by ChucK.
+What each instrument plays is controlled by sending out OSC messages to the ChucK code which decodes this into a set of musical instructions. Importantly, as in CHmuSK any changes made to the song have to be sent at a point during the current phrase so that the changes can be instigated at the start of the next phrase. (I have included the ability to use delay and wait statements to make life easier when performing live). The timing and synching is handled by ChucK.
 
 Note: this approach doesn't give you as much control as you would get in a standard livecoding approach. With the elements of the song/code having to be generated before each performance.
 
@@ -110,7 +110,7 @@ Once you have done this then you can start running the different instruments. Th
 
 SongNotes.txt which contains a series of commands which can be copied and pasted into you instrument terminal. Note: if you are using instructions which delay when an instrument is played then this can block you from copying and pasting in the next command ... this is why you might want more terminals if you want to give a smoother performance.
 
-#### 2. Jupypter Notebook
+#### 2. Jupyter Notebook
 
 SongNotes.ipynb contains the same series of commands as SongNotes.txt but in a Jupyter notebook. The instrument commands are contained in a python window with !! preceeding the instrument commands, this allows the commands to be run as if it was in a terminal window. The commands can be run by clicking the play button on the left of that section. Using this approach allows you to avoid having to copy and paste commands from a text file into a terminal window which is an advantage when performing live. **Note: you can only run one command at a time so if you use any commands that involve a wait then you will be blocked from running any other commands until the first command has finished.**
 
