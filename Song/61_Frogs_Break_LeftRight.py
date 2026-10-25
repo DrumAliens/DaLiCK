@@ -5,10 +5,8 @@ import sys
 import time
 import Library
 
-sleepTime = 0.1
-
 # Read in any command line variables
-playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probPlay, probGlitch, probSlice, shufflePercent, waitTime = Library.decodeInstrArg(sys.argv)
+playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probPlay, probGlitch, probSlice, shufflePercent, strMsg, waitTime = Library.decodeInstrArg(sys.argv)
 
 # Set up server and client for testing
 client = SimpleUDPClient(Library.SENDIP, Library.SENDPORT)
@@ -115,7 +113,7 @@ if playPhrase == 12:
 eventsL = []
 countL = 0
 for i in range(len(posValL)):
-    eventsL.extend([posValL[i], float(midiValL[i] + 4), durL[i], 1.0, sliceValL[i], 1.0, 1.0])
+    eventsL.extend([posValL[i], float(midiValL[i] + 4), durL[i], 1.0, sliceValL[i], 1.0, 0.0])
     countL += 1
 
 eventsR = []
@@ -124,35 +122,32 @@ for i in range(len(posValR)):
     eventsR.extend([posValR[i], float(midiValR[i] + 4), durR[i], 1.0, sliceValR[i], 1.0, 1.0])
     countR += 1
 
+# Join them into one instrument
+events, count = Library.sortBars(eventsL, countL, eventsR, countR)
+
 #  Wait to send out the OSC message
 if waitTime > 0.0:
     time.sleep(waitTime)
 
 # ==== Send out 
-if stopNum == 0:
 
-    #  Build the OSC Message Left
-    oscMessage = [0.75*0.15*playVolume, numPhrase, delayPhrase, probPlay, probGlitch, probSlice, shufflePercent]
-    oscMessage.append(countL)
-    oscMessage.extend(eventsL)
-    client.send_message("/song/sounds/frogs_left", oscMessage)
-
-    time.sleep(sleepTime)
-    #  Build the OSC Message Right
-    oscMessage = [0.15*playVolume, numPhrase, delayPhrase, probPlay, probGlitch, probSlice, shufflePercent]
-    oscMessage.append(countR)
-    oscMessage.extend(eventsR)
-
-    client.send_message("/song/sounds/frogs_right", oscMessage)
-else:
-    client.send_message("/song/sounds/frogs_left", [stopNum])
-
-    time.sleep(sleepTime)
-    client.send_message("/song/sounds/frogs_right", [stopNum])
+oscStrAddr = "/song/sounds/frogs_leftright"
 
 # close the chuck instance of that instrument
-if playInstr != 1:
-    client.send_message("/song/sounds/frogs_left/kill", [playInstr])
+if playInstr == 0:
+    client.send_message(oscStrAddr + "/kill", [playInstr])
 
-    time.sleep(sleepTime)
-    client.send_message("/song/sounds/frogs_right/kill", [playInstr])
+else:
+    if stopNum == 0:
+
+        #  Build the OSC Message Left
+        oscMessage = [0.75*0.15*playVolume, numPhrase, delayPhrase, probPlay, probGlitch, probSlice, shufflePercent, strMsg]
+        oscMessage.append(count)
+        oscMessage.extend(events)
+        client.send_message(oscStrAddr, oscMessage)
+
+    else:
+        client.send_message(oscStrAddr, [stopNum])
+
+
+

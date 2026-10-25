@@ -6,13 +6,14 @@ import time
 import Library
 
 # Read in any command line variables
-playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probPlay, probGlitch, probSlice, shufflePercent, waitTime = Library.decodeInstrArg(sys.argv)
+playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probPlay, probGlitch, probSlice, shufflePercent, strMsg, waitTime = Library.decodeInstrArg(sys.argv)
 
 # ==== Send out
 client = SimpleUDPClient(Library.SENDIP, Library.SENDPORT)
 
 # ==== Send out 
-phraseNumDivs = 4 * 16   
+barNumDivs = 16
+phraseNumDivs = barNumDivs * 4
 
 # Instrumentation
 posVal = [[], [], [14],[]]
@@ -27,13 +28,13 @@ effectArray1 = Library.fillWith(posVal, 1.0)
 effectArray2 = Library.fillWith(posVal, 1.0)
 
 # Combine the 4 bars
-events, count = Library.combineBars(posVal, notes, dur, posEmphasis, slice, effectArray1, effectArray2, maskArray)
+events, count = Library.combineBars(barNumDivs, posVal, notes, dur, posEmphasis, slice, effectArray1, effectArray2, maskArray)
 
 # Sort out the duration so that plays as one instrument
 eventsMod = Library.checkDuration(events, count, phraseNumDivs)
 
 #  Build the OSC Message
-oscMessage = [0.11*playVolume, numPhrase, delayPhrase, probPlay, probGlitch, probSlice, shufflePercent]
+oscMessage = [0.11*playVolume, numPhrase, delayPhrase, probPlay, probGlitch, probSlice, shufflePercent, strMsg]
 oscMessage.append(count)
 oscMessage.extend(eventsMod)
 
@@ -41,7 +42,15 @@ oscMessage.extend(eventsMod)
 if waitTime > 0.0:
     time.sleep(waitTime)
 
-if stopNum == 0:
-    client.send_message("/song/vocals/chop2", oscMessage)
+# ==== Send out
+
+oscStrAddr = "/song/vocals/chop2"
+
+# Close the chuck instance of that instrument
+if playInstr == 0:
+    client.send_message(oscStrAddr+"/kill", [playInstr])
 else:
-    client.send_message("/song/vocals/chop2", [stopNum])
+    if stopNum == 0:
+        client.send_message(oscStrAddr,  oscMessage)
+    else:
+        client.send_message(oscStrAddr, [stopNum])

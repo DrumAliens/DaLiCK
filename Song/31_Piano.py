@@ -8,7 +8,7 @@ import time
 import Library
 
 # Read in any command line variables
-playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probPlay, probGlitch, probSlice, shufflePercent, waitTime = Library.decodeInstrArg(sys.argv)
+playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probPlay, probGlitch, probSlice, shufflePercent, strMsg, waitTime = Library.decodeInstrArg(sys.argv)
 
 # Set up server and client for testing
 client = SimpleUDPClient(Library.SENDIP, Library.SENDPORT)
@@ -35,7 +35,8 @@ if playPhrase == 3:
     notes = [[40], [41], [42], [43]]
 
 numBars = len(posVal)
-phraseNumDivs = 16 * numBars
+barNumDivs = 16
+phraseNumDivs = barNumDivs * 4
 
 # Don't want and emphasis but need the elements
 posEmphasis = Library.fillWith(posVal,1.0)
@@ -45,13 +46,13 @@ effectArray1 = Library.fillWith(posVal, 1.0)
 effectArray2 = Library.fillWith(posVal, 1.0)
 
 # Combine the 4 bars
-events, count = Library.combineBars(posVal, notes, dur, posEmphasis, slice, effectArray1, effectArray2, maskArray)
+events, count = Library.combineBars(barNumDivs, posVal, notes, dur, posEmphasis, slice, effectArray1, effectArray2, maskArray)
 
 # Sort out the duration so that plays as one instrument
 # eventsMod = Library.checkDuration(events, count, phraseNumDivs)
 
 #  Build the OSC Message
-oscMessage = [0.08*playVolume, numPhrase, delayPhrase, probPlay, probGlitch, probSlice, shufflePercent]
+oscMessage = [0.08*playVolume, numPhrase, delayPhrase, probPlay, probGlitch, probSlice, shufflePercent, strMsg]
 oscMessage.append(count)
 oscMessage.extend(events)
 
@@ -59,8 +60,15 @@ oscMessage.extend(events)
 if waitTime > 0.0:
     time.sleep(waitTime)
 
-if stopNum == 0:
-    client.send_message("/song/piano/pianoChord", oscMessage)
-    # client.send_message("/song/guitar/guitar", [0.05*playVolume, 41, maskArray[3]*posVal1, 48, maskArray[2]*posVal2, 50, maskArray[1]*posVal3, 51, maskArray[0]*posVal4, numPhrase, delayPhrase])
+# ==== Send out
+
+oscStrAddr = "/song/piano/pianoChord"
+
+# Close the chuck instance of that instrument
+if playInstr == 0:
+    client.send_message(oscStrAddr+"/kill", [playInstr])
 else:
-    client.send_message("/song/piano/pianoChord", [stopNum])
+    if stopNum == 0:
+        client.send_message(oscStrAddr,  oscMessage)
+    else:
+        client.send_message(oscStrAddr, [stopNum])

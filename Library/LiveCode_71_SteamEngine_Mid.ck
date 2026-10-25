@@ -1,71 +1,70 @@
+CHmUsiCK Library => LiSa buffer => Envelope fader => Pan2 pan => dac;
 
-CHmUsiCK Library => SndBuf2 buffer => Envelope envelope[2] => LPF instrLPF[2] => dac;
+"/steamengine" => string oscInstrMsgSongPhrase;
+"/song/sounds/steamengine_mid" => string oscInstrMsgName;
 
-// Run the fader for the filter through into a blackhole
-Envelope faderFilt => blackhole;
+buffer.read(me.dir() + "Samples/SteamEngine/424940__blukotek__heavy-machine-steam-pressure-gauge_44100Hz_Loop9_55bpm.wav");
 
-"/song/sounds/thunder" => string oscInstrMsgName;
+// Work out the length of the LiSa buffer
+Std.ftoi(buffer.duration() / 1::samp) => int sampleEnd;
 
-me.dir() + "Samples/frogsAnd/194364__dave-welsh__thunder-clap-Mod.wav" => buffer.read;
-buffer.samples() => int sampleEnd;
-sampleEnd => buffer.pos;
+// Set the ratio for the sample
+1.0 => float sampleRatio;
 
-// Get the sample rate
-buffer.sampleRate() => float sampleHz;
+"71" => string instrEnblStr;
+Std.atoi(instrEnblStr) => int instrEnblVal;
 
-// Map play back rate to a midi note
-Library.MIDIROOTNOTE => float midiRootNote;
+// Setup the LiSa sample envelope
+0.01::second => dur rampUpTimeDur;
+0.01::second => dur rampDownTimeDur;
 
-// Map out the slices in the sample
-sampleEnd / sampleHz => float sliceNoteSec;
+// Pan to middle
+0.0 => pan.pan;
 
-// Setup the envelope
-0.5 => float rampTimeSec;
-rampTimeSec::second => envelope[0].duration => envelope[1].duration;
-0.0 => envelope[0].value => envelope[1].value;
+// Switch on the master fader envelope
+1.0 => fader.value;
 
-// 
-"62" => string instrEnblStr;
+// Sliced positions worked out in excel spreadsheet
+9 => int numSampleSlices;
+int sliceNotePos[numSampleSlices + 1];
+float sliceNoteSec[numSampleSlices];
 
-// Switch on the filter fader envelope
-1.0 => faderFilt.value;
-60.0 => float filtFadeDurABS;
-// Minimum filter cutoff
-500.0 => float minLPFFreq;
-// Maximum filter cutoff
-24000.0 => float maxLPFFreq => instrLPF[0].freq => instrLPF[1].freq;  
-// Work out the delta for spork function
-maxLPFFreq / minLPFFreq => float ratioLPFFreq;       
-// Filter resonance
-3.0 => instrLPF[0].Q => instrLPF[1].Q;  
+// Work out the time of each section of the sample
+sampleEnd / numSampleSlices => float deltaPos;
+0 => sliceNotePos[0];
+for (1 => int i; i < numSampleSlices; i++) {
+    Std.ftoi(deltaPos * i) => sliceNotePos[i];
+}
+sampleEnd => sliceNotePos[numSampleSlices];
+
+// Work out the time of each section of the sample
+for (0 => int i; i < numSampleSlices; i++) {
+    (sliceNotePos[i+1] - sliceNotePos[i]) / Library.sampleHz => sliceNoteSec[i];
+}
 
 // ============= DON'T CHANGE BEYOND HERE
 
-0 => int oscMsgRecvr;
-0 => int oscMsgInstrRecvr;
-0 => int oscMsgFadeRecvr;
-0 => int oscMsgFiltFadeRecvr;
+0 => int oscMsgRecvr => int oscMsgInstrRecvr => int oscMsgFadeRecvr;
 
-// Map across the song parameters
 16 => int oscNumBeats;
 4 => int oscBeatDivision;
+4 => int oscBeatBar;
 120.0 => float oscSongTempo;
 50.0 => float oscInstrShufflePercent;
+oscNumBeats * oscBeatDivision => int oscPhraseDiv => int phraseDiv;
 // Calculate the timing information
 TimerInfo timerInfo;
-Library.calcTimer(oscNumBeats, oscBeatDivision, oscSongTempo, oscInstrShufflePercent) @=> timerInfo;
 
 1 => int oscInstrPlay;
-1.0 => float oscInstrAmp;
+1.0 => float oscInstrAmp => float instrAmp;
+9999999 => int oscInstrStop;
 0 => int oscInstrDelay;
-5 => int oscInstrStop => int instrStop;
-1.0 => float oscInstrGain;
 0.0 => float oscInstrProbPlay => float sampleProbPlay;
 0.0 => float oscInstrProbGlitch => float sampleProbGlitch;
 0.0 => float oscInstrProbSlice => float sampleProbSlice;
+"" => string oscStrMsg;
 
 4.0 => float oscFadeDur;
-4.0 => float oscFiltFadeDur;
 
 // Setup the initial counter     
 0 => int countLocl;
@@ -81,12 +80,12 @@ int samplePos[arrayLen];
 // MIDI note to be played
 float oscInstrArrayNote[arrayLen];
 float sampleNote[arrayLen];
+// Length of that note in beats
+int oscInstrArrayNumNoteDivs[arrayLen];
+int sampleNumNoteDivs[arrayLen];
 // Position amp of the slice 
 float oscInstrArrayEmphasis[arrayLen];
 float sampleEmphasis[arrayLen];
-// Length of that note in seconds
-float oscInstrArrayNoteTime[arrayLen];
-float sampleNoteTime[arrayLen];
 // Position of the slice within a sample 
 int oscInstrArraySliceIndx[arrayLen];
 int sampleSliceIndx[arrayLen];
@@ -96,69 +95,45 @@ float sampleEffect1[arrayLen];
 float oscInstrArrayEffect2[arrayLen];
 float sampleEffect2[arrayLen];
 
-// Spork the modulation function to run concurrently
-spork ~ mapEnvelopeToFilter();
-
 // Start the OSC Message Receiver
-spork ~ OscRecvr();
+spork ~ OscRecvr() @=> Shred @shredId;
 
 // Wait for the OSC signal on the song information
-while (oscMsgRecvr == 0){
+while (oscMsgRecvr == 0) {
     samp => now;
 }
 // Reset the osc message flag 
 0 => oscMsgRecvr;
 
-// NEED TO PUT A WAIT HERE TO ALIGN WITH THE TIME AND THE START OF A PHRASE
-
-// Setup the initial counter     
 oscNumBeats => int numBeats;
 oscBeatDivision => int beatDivision;
+oscBeatBar => int beatBar;
 oscSongTempo => float songTempo;
+oscPhraseDiv => phraseDiv;
 
 // Calculate the timing information
-Library.calcTimer(oscNumBeats, oscBeatDivision, oscSongTempo, oscInstrShufflePercent) @=> timerInfo;
-
-timerInfo.numPhraseDivisions*timerInfo.divVal => float val;
-val::second => dur phraseDur;
-
-// Flag to allow the played sample to complete
-0 => int finishPlaying;
+Library.calcTimer(numBeats, beatDivision, beatBar, songTempo, oscInstrShufflePercent) @=> timerInfo;
 
 // Counter to determine whether the instrument is played over the phrase 
 0 => int instrPlayedLastPhrase;
 
-// This waits for each phrase cycle and exits if called
-while(oscInstrPlay == 1)
+// Loop round the sample
+while(oscInstrPlay)
 {
 
-   // Master 
-   if (oscMsgRecvr > 0){
+    // Master 
+    if (oscMsgRecvr > 0){
         oscNumBeats => numBeats;
         oscBeatDivision => beatDivision;
+        oscBeatBar => beatBar;
         oscSongTempo => songTempo;
+        oscPhraseDiv => phraseDiv;
         
         // Calculate the timing information
-        Library.calcTimer(numBeats, beatDivision, songTempo, oscInstrShufflePercent) @=> timerInfo;
+        Library.calcTimer(numBeats, beatDivision, beatBar, songTempo, oscInstrShufflePercent) @=> timerInfo;
 
 		// Reset the osc message flag 
 		0 => oscMsgRecvr;
-    }
-
-    // Low Pass Filter Fader 
-    if (oscMsgFiltFadeRecvr > 0) {
-        // Set the length of time to fade over
-        Math.fabs(oscFiltFadeDur) => filtFadeDurABS;
-        filtFadeDurABS::second => faderFilt.duration;
-
-        if (oscFiltFadeDur < 0.0) {
-           faderFilt.keyOff();
-        }
-        else {
-           faderFilt.keyOn();
-        }
-        // Reset the osc message flag 
-        0 => oscMsgFiltFadeRecvr;
     }
 
     // Remove OSC Instrument request to stop an instrument if it hasn't run previously
@@ -169,24 +144,23 @@ while(oscInstrPlay == 1)
 
     // Map across OSC Instrument changes 
     if (oscMsgInstrRecvr > 0){
-
+        // If the phrase is delayed then need to wait before updating
         if (oscInstrDelay == 0) {
-            // oscInstrAmp => buffer.gain;
-            oscInstrAmp => buffer.gain;
+            oscInstrAmp => instrAmp;
             oscInstrStop => stopNumber;
             oscInstrProbPlay => sampleProbPlay;
             oscInstrProbGlitch => sampleProbGlitch;
             oscInstrProbSlice => sampleProbSlice;
 
             // Update the timing information
-            Library.calcTimer(numBeats, beatDivision, songTempo, oscInstrShufflePercent) @=> timerInfo;
+            Library.calcTimer(numBeats, beatDivision, beatBar, songTempo, oscInstrShufflePercent) @=> timerInfo;
 
             0 => countLocl;
             // Copy across the instrument information
             for (0 => int i; i < oscNumElements; i++) {
                 oscInstrArrayPos[i] => samplePos[i];
                 oscInstrArrayNote[i] => sampleNote[i];
-                oscInstrArrayNoteTime[i] => sampleNoteTime[i];
+                oscInstrArrayNumNoteDivs[i] => sampleNumNoteDivs[i];
                 oscInstrArrayEmphasis[i] => sampleEmphasis[i];
                 oscInstrArraySliceIndx[i] => sampleSliceIndx[i];
                 oscInstrArrayEffect1[i] => sampleEffect1[i];
@@ -195,25 +169,52 @@ while(oscInstrPlay == 1)
             // Put in stop condition
             oscInstrArrayPos[oscNumElements] => samplePos[oscNumElements];
 
+            // Print out helping string
+            if (oscStrMsg.length() > 0) {
+                cherr <= oscStrMsg <= IO.newline();
+            }
+
             // Reset the osc message flag 
             0 => oscMsgInstrRecvr;
         }
         else {
             oscInstrDelay--;
-        }        
+        }
+    }
+
+    // Master Fader 
+    if (oscMsgFadeRecvr > 0) {
+        // Set the length of time to fade over
+        Math.fabs(oscFadeDur)::second => fader.duration;
+       if (oscFadeDur < 0.0) {
+           fader.keyOff();
+        }
+        else {
+           fader.keyOn();   
+        }
+        // Reset the osc message flag 
+        0 => oscMsgFadeRecvr;
     }
 
     0 => int sampleIndx;
     1 => int evenVal;
     0 => instrPlayedLastPhrase;
-    for (0 => int i; i < timerInfo.numPhraseDivisions; i++) {
+    for (0 => int i; i < phraseDiv; i++) {
+
         // Play the sample if required and it's less than the stop number then play it
-        if ((samplePos[sampleIndx] == i) && (countLocl < stopNumber) && (sampleNoteTime[sampleIndx] > 0.0) && (finishPlaying == 0)) {
+        if ((samplePos[sampleIndx] == i) && (countLocl < stopNumber) && (sampleNumNoteDivs[sampleIndx] > 0)) {
             // Only checks the probabilty when the other conditions are true        
-            if (Math.randomf() >= sampleProbPlay) {
+            if ((Math.randomf() >= sampleProbPlay) || (sampleEffect1[sampleIndx] == 0)) {
+
+                // Map across the correct position within the sample
+                Math.clampi(sampleSliceIndx[sampleIndx], 0, numSampleSlices - 1) => int indx;
+
+                // Check length of sample
+                Math.min(sliceNoteSec[indx] / sampleRatio, sampleNumNoteDivs[sampleIndx] * timerInfo.divVal + evenVal * timerInfo.shuffleOffset) => float samplePlayTime;
 
                 // Play the sample slice
-                spork ~ playSample(sampleNoteTime[sampleIndx]);
+                spork ~ Library.lisaPlaySample(buffer, sliceNotePos[indx]::samp, samplePlayTime::second, rampUpTimeDur, rampDownTimeDur, sampleRatio, sampleEmphasis[sampleIndx] * instrAmp);
+
             }    
             // Increment sample indx counter
             sampleIndx++;
@@ -221,53 +222,19 @@ while(oscInstrPlay == 1)
             // Increment counter when instrument is played
             instrPlayedLastPhrase++;
         }    
+
         // Wait for a div time to pass
         Library.waitDivTime(timerInfo, evenVal);
 
         // Swap sign
-        -1 * evenVal => evenVal;
-    }
+        -1 * evenVal => evenVal; 
 
-    //cherr <= "Thunder: \"" <= instrLPF[0].freq() <= IO.newline();  
+    }
+    countLocl++;
 }  
 
-//----------------------------------------------------------------------------
-// Function to play part of sample
-//----------------------------------------------------------------------------
-fun void playSample(float playTime) {
-
-    // Open up the envelope
-    1.0 => envelope[0].value => envelope[1].value;
-
-    1 => finishPlaying;
-
-    // Play from the begining to the start of the loop
-    0 => buffer.pos;
-
-    Math.min(playTime, sliceNoteSec) => float val;
-    val::second => now;
-
-    // Ramp off
-    envelope[0].keyOff();
-    envelope[1].keyOff();
-    rampTimeSec::second => now;
-
-    0 => finishPlaying;
-
-    countLocl++;
-    cherr <= "Finished Thunder: " <= countLocl <= IO.newline();        
-}
-
-//----------------------------------------------------------------------------
-// Background shred function to continuously map envelope output to filter frequency
-//----------------------------------------------------------------------------
-fun void mapEnvelopeToFilter() {
-    while (true) {
-        // faderFilt.value() outputs 0.0 to 1.0. Map this to the cut off frequency of the filter
-        minLPFFreq * Math.pow(ratioLPFFreq, (faderFilt.value() * filtFadeDurABS) / filtFadeDurABS) => instrLPF[0].freq  => instrLPF[1].freq;
-        timerInfo.divVal::second => now;   // Update every sample for maximum smoothness
-    }
-}
+// Close/remove the sporked shred using its ID
+Machine.remove(shredId.id());
 
 //----------------------------------------------------------------------------
 // OpenSoundControl (OSC) receiver for Instr
@@ -297,14 +264,23 @@ fun void OscRecvr()
             // print stuff
             // cherr <= "received OSC message: \"" <= msg.address <= "\" "
             //      <= "typetag: \"" <= msg.typetag <= "\" "
-            //      <= "arguments: " <= msg.numArgs() <= IO.newline();        
+            //      <= "arguments: " <= msg.numArgs() <= IO.newline();         
 
             // Master setup
-            if (msg.address == "/song/master/setup") {
+            if (msg.address == "/song/master/setup" + oscInstrMsgSongPhrase) {
                 msg.numArgs() => oscMsgRecvr;
                 msg.getInt(0) => oscNumBeats;
                 msg.getInt(1) => oscBeatDivision;
-                msg.getFloat(2) => oscSongTempo;
+                msg.getInt(2) => oscBeatBar;
+                msg.getFloat(3) => oscSongTempo;
+                oscNumBeats * oscBeatDivision => oscPhraseDiv;
+                // Check to see if this instrument is affected
+                for (4 => int i; i < oscMsgRecvr; 2 +=> i) {
+                    msg.getInt(i) => int loclInt;
+                    if (instrEnblVal == loclInt) {
+                        msg.getInt(i+1) * oscBeatDivision => oscPhraseDiv;
+                    }
+                }    
             }
 
             // Master Fade
@@ -313,15 +289,6 @@ fun void OscRecvr()
                 msg.getFloat(0) => oscFadeDur;
                 if (oscFadeDur != 0.0) {
                     msg.numArgs() => oscMsgFadeRecvr;
-                }
-            }
-
-            // Filter Fade
-            if (msg.address == "/song/master/filt/" + instrEnblStr) {
-                // Only do something if the message is non zero
-                msg.getFloat(0) => oscFiltFadeDur;
-                if (oscFiltFadeDur != 0.0) {
-                    msg.numArgs() => oscMsgFiltFadeRecvr;
                 }
             }
 
@@ -336,28 +303,36 @@ fun void OscRecvr()
                     msg.getFloat(4) => oscInstrProbGlitch;
                     msg.getFloat(5) => oscInstrProbSlice;
                     msg.getFloat(6) => oscInstrShufflePercent;
+                    msg.getString(7) => oscStrMsg;
                     // Collect the note information
-                     msg.getInt(7) => oscNumElements;
+                     msg.getInt(8) => oscNumElements;
                     // Allow bypass changing what is played
                     if (oscNumElements > 0) {
                         // Populate the new instrument information
                         for (0 => int i; i < oscNumElements; i++) {
-                            msg.getInt(8 + i * 7) => oscInstrArrayPos[i];
-                            msg.getFloat(9 + i * 7) => oscInstrArrayNote[i];
-                            msg.getFloat(10 + i * 7) => oscInstrArrayNoteTime[i];
-                            msg.getFloat(11 + i * 7) => oscInstrArrayEmphasis[i];
-                            msg.getInt(12 + i * 7) => oscInstrArraySliceIndx[i];
-                            msg.getFloat(13 + i * 7) => oscInstrArrayEffect1[i];
-                            msg.getFloat(14 + i * 7) => oscInstrArrayEffect2[i];
+                            msg.getInt(9 + i * 7) => oscInstrArrayPos[i];
+                            msg.getFloat(10 + i * 7) => oscInstrArrayNote[i];
+                            msg.getInt(11 + i * 7) => oscInstrArrayNumNoteDivs[i];
+                            msg.getFloat(12 + i * 7) => oscInstrArrayEmphasis[i];
+                            msg.getInt(13 + i * 7) => oscInstrArraySliceIndx[i];
+                            msg.getFloat(14 + i * 7) => oscInstrArrayEffect1[i];
+                            msg.getFloat(15 + i * 7) => oscInstrArrayEffect2[i];
                         }
                         // Put the position information beyond the length of the phrase
-                        timerInfo.numPhraseDivisions + 1 => oscInstrArrayPos[oscNumElements];
-                    }  
+                        phraseDiv + 1 => oscInstrArrayPos[oscNumElements];
+                    } 
                 }            
                 else {
                     msg.getInt(0) => oscInstrStop;
                 }
             }    
+
+            // Stop the instrument
+            if (msg.address == oscInstrMsgName+"/kill") {
+                if (msg.numArgs() == 1) {
+                    0 => oscInstrPlay;
+                }
+            }  
         }     
     }
 

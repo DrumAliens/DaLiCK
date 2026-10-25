@@ -14,6 +14,8 @@ SENDPORT = 49162
 REPLAYPORT = LISTENPORT + 1
 REPLAYPORTNUM = 9
 MIDIROOTNOTE = 72
+DATABLKLEN = 7
+PI = 3.14159265359
 
 def pos2Dec(array):
     decVal = 0
@@ -63,8 +65,9 @@ def decodeInstrArg(argv):
     # Shuffle percentage to even
     shufflePrecent = 50.0
     waitTime = 0.0
-
+    strMsg = ""
     # Command line is already separated by spaces so go through each in turn
+
     for raw in argv:
         # Split again if the string contains a comma
         for string in raw.split(','):
@@ -94,32 +97,75 @@ def decodeInstrArg(argv):
                 shufflePrecent = min(max(float(string[1:]), 50.0), 75.0)
             elif 'w' in string[0].lower():
                 waitTime = float(string[1:])
+            elif '>' in string[0]:
+                strMsg = string
             elif 'kill' in string[0:4].lower():
                 playInstr = 0    
             elif (string != '') and (string[0] != '.'):
                 maskArray.append(int(string))    
 
-    return playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probPlay, probGlitch, probSlice, shufflePrecent, waitTime
+    return playPhrase, playVolume, numPhrase, maskArray, delayPhrase, stopNum, freqRatio, playInstr, probPlay, probGlitch, probSlice, shufflePrecent, strMsg, waitTime
 
 # Decode the command line data for the song structure
 def decodeSongStructArg(argv):
     # Read in any command line variables
+    # Number of beats for a phrase/passage
     numBeats = 16
+    # How the beat is divided up
     beatDivision = 4
-    # Original Dustin Speed
-    songTempo = 60 / (4 * 0.155)
+    # How many beats are in a bar
+    beatBar = 4
+    songTempo = 120.0
+    songSection = ""
+    playInstr = 1
+    beatNum = 1
+    instrArray = []
 
-    for indx in range(len(argv)):
-        string = str(argv[indx])
+    for string in argv:
         # Instrument commands
         if 'n' in string[0].lower():
             numBeats = int(string[1:])
-        if 'd' in string[0].lower():
+        elif 'd' in string[0].lower():
             beatDivision = int(string[1:])
-        if 't' in string[0].lower():
+        elif 'b' in string[0].lower():
+            beatBar = int(string[1:])
+        elif 't' in string[0].lower():
             songTempo = float(string[1:])
+        elif ':' in string:
+            loclStr = string.split(':')
+            beatNum = int(loclStr[0])
+            #  Go through the instruments
+            for instStr in loclStr[1].split(','):
+                instrArray.extend([int(instStr), beatNum])
+        elif 'kill' in string[0:4].lower():
+            playInstr = 0
+        elif '/' in string[0]:
+            songSection = string    
 
-    return numBeats, beatDivision, songTempo
+    # for raw in argv:
+    #     # Split again if the string contains a comma
+    #     for string in raw.split(','):
+    #         # Instrument commands
+    #         if 'n' in string[0].lower():
+    #             numBeats = int(string[1:])
+    #         elif 'd' in string[0].lower():
+    #             beatDivision = int(string[1:])
+    #         elif 'b' in string[0].lower():
+    #             beatBar = int(string[1:])
+    #         elif 't' in string[0].lower():
+    #             songTempo = float(string[1:])
+    #         elif ':' in string:
+    #             loclStr = string.split(':')
+    #             multNum = int(loclStr[0])
+    #             instrArray.append(int(loclStr[1]))
+    #         elif 'kill' in string[0:4].lower():
+    #             playInstr = 0
+    #         elif '/' in string[0]:
+    #             songSection = string    
+    #         elif (string != '') and (string[0] != '.'):
+    #             instrArray.append(int(string))    
+
+    return numBeats, beatDivision, beatBar, songTempo, songSection, playInstr, instrArray
 
 # Decode the command line data for the fading functions
 def decodeFadeArg(argv):
@@ -135,6 +181,7 @@ def decodeFadeArg(argv):
                 waitTime = float(string[1:])
             elif 'd' in string[0].lower():
                 fadeDur = float(string[1:])  
+ 
             elif (string != '') and (string[0] != '.'):
                 msgList.append(string)    
 
@@ -150,7 +197,7 @@ def checkDuration(events, count, numBeats):
     slice = []
     effect1 = []
     effect2 = []
-    indx = 7
+    indx = DATABLKLEN
     # Extract all of the data back out into new rows
     for i in range(count):
         pos.append(events[0 + i * indx])
@@ -209,20 +256,65 @@ def fillWith(posVal, loclVal):
     return res
 
 # Combine bars of instrumentation to create a complete set of information
-def combineBars(posVal, notes, dur, posEmphasis, slice, effectArray1, effectArray2, maskArray):
+def combineBars(divPerBar, posVal, notes, dur, posEmphasis, slice, effectArray1, effectArray2, maskArray):
     events = []
     count = 0
     div = 0
     for indx in range(len(posVal)):
-        # Pass through the data if mask Array is empty or if there are specific posisions
+        # Pass through the data if mask Array is empty or if there are specific positions
         if ((indx + 1) in maskArray) or (len(maskArray) == 0):
             for i in range(len(posVal[indx])):
                 events.extend([posVal[indx][i] + div, float(notes[indx][i]), dur[indx][i], posEmphasis[indx][i], slice[indx][i], float(effectArray1[indx][i]), float(effectArray2[indx][i])])
                 count += 1
-        div += 16
+        div += divPerBar
 
     return events, count
 
+# Combine two events so that they can be sent as one instrument 
+def sortBars(eventsL, countL, eventsR, countR):
+    events = []
 
+    # Extract the position information from both events
+    posVal = eventsL[0::DATABLKLEN] + eventsR[0::DATABLKLEN]
 
+    # Work out the sorted indices
+    sorted_with_indices = sorted(enumerate(posVal), key=lambda x: x[1])
+
+    # Extract just the original indices
+    indxAry = [index * DATABLKLEN for index, value in sorted_with_indices]
+
+    # Combine the original events lists
+    eventsRaw = eventsL + eventsR
+
+    # Reorder the information based upon the sort
+    for indx in indxAry:
+        events.extend(eventsRaw[indx:indx + DATABLKLEN]) 
+
+    return events, countL + countR
+
+# Pack out the existing events so that it is correct target length
+def packBars(eventsRaw, targetCount):
+
+    # Work out the current length 
+    currentCount = int(len(eventsRaw) / DATABLKLEN)
+
+    # Pack out events with dummy data if current length is less than the target length
+    if currentCount < targetCount:
+        count = targetCount - currentCount
+        for i in range(count):
+            eventsRaw.extend([999999, 0.0, 0, 0.0, 0, 0.0, 0.0]) 
+            currentCount += 1
+
+    return eventsRaw, currentCount
+
+# Pack out the existing events so that it is correct target length
+def lfoSine(numPoints, amp):
+
+    lfo = []
+
+    # Pack out events if current length is less than the target length
+    for i in range(numPoints):
+        lfo.append(amp * math.sin(2 * PI * i /(numPoints - 1))) 
+
+    return lfo
 

@@ -3,7 +3,7 @@ from pythonosc.udp_client import SimpleUDPClient
 import sys
 import Library
 
-numBeats, beatDivision, songTempo = Library.decodeSongStructArg(sys.argv)
+numBeats, beatDivision, beatBar, songTempo, songSection, playInstr, multiInstrAry = Library.decodeSongStructArg(sys.argv)
 
 # =================================
 # Send out the OSC port to Chuck
@@ -17,5 +17,13 @@ client = SimpleUDPClient(Library.SENDIP, Library.SENDPORT)
 
 #  Rain speed
 # tempo = 146.0
-client.send_message("/song/master/setup", [numBeats, beatDivision, songTempo])
+
+if playInstr == 0:
+    client.send_message("/song/master/kill", [playInstr])
+else:
+
+    oscMessage = [numBeats, beatDivision, beatBar, songTempo]
+    oscMessage.extend(multiInstrAry)
+    
+    client.send_message("/song/master/setup" + songSection, oscMessage)
 

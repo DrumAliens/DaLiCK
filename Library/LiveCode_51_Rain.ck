@@ -2,12 +2,14 @@
 CHmUsiCK Library => SndBuf2 buffer => Envelope fader[2] => dac;
 
 "/song/sounds/rain" => string oscInstrMsgName;
+"/barstardisation" => string oscInstrMsgSongPhrase;
 
 me.dir() + "Samples/frogsAnd/41937__dobroide__20071002.downpour.wav" => buffer.read;
 buffer.samples() => buffer.pos;
 
 // 32dec
-"61" => string instrEnblStr;
+"51" => string instrEnblStr;
+Std.atoi(instrEnblStr) => int instrEnblVal;
 
 // ============= DON'T CHANGE BEYOND HERE
 
@@ -18,8 +20,10 @@ buffer.samples() => buffer.pos;
 // Map across the song parameters
 16 => int oscNumBeats;
 4 => int oscBeatDivision;
+4 => int oscBeatBar;
 120.0 => float oscSongTempo;
 50.0 => float oscInstrShufflePercent;
+oscNumBeats * oscBeatDivision => int oscPhraseDiv => int phraseDiv;
 
 1 => int oscInstrPlay;
 1.0 => float oscInstrAmp;
@@ -49,7 +53,7 @@ while (oscMsgRecvr == 0){
 
 // Calculate the timing information
 TimerInfo timerInfo;
-Library.calcTimer(oscNumBeats, oscBeatDivision, oscSongTempo, oscInstrShufflePercent) @=> timerInfo;
+Library.calcTimer(oscNumBeats, oscBeatDivision, oscBeatBar, oscSongTempo, oscInstrShufflePercent) @=> timerInfo;
 
 timerInfo.numPhraseDivisions*timerInfo.divVal => float val;
 val::second => dur phraseDur;
@@ -143,11 +147,20 @@ fun void OscRecvr()
             //      <= "arguments: " <= msg.numArgs() <= IO.newline();        
 
             // Master setup
-            if (msg.address == "/song/master/setup") {
+            if (msg.address == "/song/master/setup" + oscInstrMsgSongPhrase) {
                 msg.numArgs() => oscMsgRecvr;
                 msg.getInt(0) => oscNumBeats;
                 msg.getInt(1) => oscBeatDivision;
-                msg.getFloat(2) => oscSongTempo;
+                msg.getInt(2) => oscBeatBar;
+                msg.getFloat(3) => oscSongTempo;
+                oscNumBeats * oscBeatDivision => oscPhraseDiv;
+                // Check to see if this instrument is affected
+                for (4 => int i; i < oscMsgRecvr; 2 +=> i) {
+                    msg.getInt(i) => int loclInt;
+                    if (instrEnblVal == loclInt) {
+                        msg.getInt(i+1) * oscBeatDivision => oscPhraseDiv;
+                    }
+                } 
             }
 
             // Master Fade
@@ -167,6 +180,13 @@ fun void OscRecvr()
                     msg.getFloat(1) => oscInstrFreq;
                     msg.getInt(2) => oscInstrDelay;
                 }            
+            }  
+
+            // Stop the instrument
+            if (msg.address == oscInstrMsgName+"/kill") {
+                if (msg.numArgs() == 1) {
+                    0 => oscInstrPlay;
+                }
             }  
         }     
     }

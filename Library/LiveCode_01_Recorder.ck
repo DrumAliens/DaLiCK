@@ -7,15 +7,18 @@ oscOut.dest("127.0.0.1", 49163);
 
 // ============= DON'T CHANGE BEYOND HERE
 
-0 => int oscMsgRecvr;
+"/song/master" => string oscInstrMsgRoot;
 
-4 => int oscSongCycles;
-4 => int oscSongMeasure;
-16 => int oscSongDivision;
+0 => int oscMsgRecvr;
+1 => int oscInstrPlay;
+
+16 => int oscNumBeats;
+4 => int oscBeatDivision;
+4 => int oscBeatBar;
 120.0 => float oscSongTempo;
 
 // Start the OSC Message Receiver
-spork ~ OscRecvr();
+spork ~ OscRecvr() @=> Shred @shredId;
 
 // Wait for the OSC signal on the song information
 while (oscMsgRecvr == 0){
@@ -29,11 +32,18 @@ dac => WvOut2 w => blackhole;
 // Set the output file name
 "my_recording.wav" => w.wavFilename;
 
-// Record for 60 seconds
-20.0::minute => now;
+// Loop round the sample
+while(oscInstrPlay)
+{
+    // Record for 60 seconds
+    5.0::second => now;
+}
 
 // Close the file properly to flush data
 w.closeFile();
+
+// Close/remove the sporked shred using its ID
+Machine.remove(shredId.id());
 
 //----------------------------------------------------------------------------
 // OpenSoundControl (OSC) receiver for Instr
@@ -66,13 +76,22 @@ fun void OscRecvr()
             //      <= "arguments: " <= msg.numArgs() <= IO.newline();         
 
             // Master setup
-            if (msg.address == "/song/master/setup") {
+            //  - ignores any additional strings past /setup
+            //    if the system is triggering specific groups of instruments
+            if (msg.address.find(oscInstrMsgRoot + "/setup") == 0) {
                 msg.numArgs() => oscMsgRecvr;
-                msg.getInt(0) => oscSongCycles;
-                msg.getInt(1) => oscSongMeasure;
-                msg.getInt(2) => oscSongDivision;
+                msg.getInt(0) => oscNumBeats;
+                msg.getInt(1) => oscBeatDivision;
+                msg.getInt(2) => oscBeatBar;
                 msg.getFloat(3) => oscSongTempo;
             }
+
+            // Stop the instrument
+            if (msg.address == oscInstrMsgRoot + "/kill") {
+                if (msg.numArgs() == 1) {
+                    0 => oscInstrPlay;
+                }
+            }  
 
         }     
     }

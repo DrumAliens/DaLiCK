@@ -27,20 +27,23 @@ public class CHmUsiCK extends Chugraph {
     "127.0.0.1" => string OSCOUTIP; 
     49163 => int OSCOUTPORT;
 
+    // Assume that files is corrected 
+    second / samp => float sampleHz;
+
     // midi offset for the chop wav files
     0.0 => float chopMidiOffset;
 
     // Calculate all of the different timings required
-    public TimerInfo calcTimer(int numBeats, int beatDivision, float songTempo, float shuffle) {
+    public TimerInfo calcTimer(int numBeats, int beatDivision, int beatBar, float songTempo, float shuffle) {
         new TimerInfo @=> TimerInfo res;
 
         // Calculate the length of the phrase
         numBeats * beatDivision => res.numPhraseDivisions;
 
-        // Calculate the bpm based upon 4 beats in a bar
-        (60.0 * 4) / songTempo => res.barVal;
+        // Calculate the time for a bar
+        (60.0 * beatBar) / songTempo => res.barVal;
         // Calculate the length of the beat division
-        res.barVal / (4 * beatDivision) => res.divVal;
+        res.barVal / (beatBar * beatDivision) => res.divVal;
         res.divVal::second => res.divDur;     
 
         // Calculate the differences for shuffle timing
@@ -488,52 +491,13 @@ public class CHmUsiCK extends Chugraph {
         return 12.0 * (Math.log(rate) / Math.log(2.0)) + MIDIROOTNOTE;
     }
 
-    // Play a sample or a slice of a sample MONO WAV
-    //    Note midiNote is a float so can set specific desired rate (see rateToMidiNote function)
-    public void playSample(SndBuf buffer, float midiNote, int slicePos, float sliceSec, float beatTime) {
-
-        // Set up the envelope within the function
-        buffer => Envelope envelope => outlet;
-
-        0.050 => float rampTimeSec;
-        rampTimeSec::second => envelope.duration;
-
-        // Sort out slice start postion
-        slicePos => buffer.pos;
-
-        // Sort frequency of slice - assume midi 72 (C4) is 1.0
-        Math.pow(2.0, (midiNote - MIDIROOTNOTE) / 12.0) => float rate;
-        rate => buffer.rate;
-        
-        // Calculate how long to play that slice for 
-        // - adjust for pitch changes 
-        // - make sure it only plays that sample slice
-        // - subtract the ramp up and ramp down time
-        Math.min(sliceSec / rate, beatTime) - rampTimeSec => float val;
-        // Math.min(sliceSec / rate, beatTime) => float val;
-
-        // Ramp up
-        1.0 => envelope.value;
-        
-        // Play the slice
-        val::second => now;
-
-        // Ramp down
-        envelope.keyOff();
-        rampTimeSec::second => now;
-        
-        // Have to put the play head at the end of the sample
-        // otherwise the sample will play after you exit the function
-        buffer.samples() => buffer.pos;
+    // Converts a midiNote to a rate
+    public float midiNote2Rate(float midiNote)
+    {
+        return Math.pow(2.0, (midiNote - MIDIROOTNOTE) / 12.0);
     }
 
-    // // Sinewave 
-    // public float lfoSine(float minValue, float maxValue, float value)
-    // {
-    //    return 0.5*((maxValue-minValue)*Math.sin(value*STATIC.BEATS) + maxValue + minValue);
-    // }
-
-  // ==========================================================================
+    // ==========================================================================
 
     public int[] granularize(int array[], int howmany)
     {
@@ -549,5 +513,37 @@ public class CHmUsiCK extends Chugraph {
         return granularized;
     }
 
+
+    // ==================== LiSa functions
+
+    public void lisaPlaySample( LiSa lisa, dur pos, dur grainLen, dur rampUp, dur rampDown, float rate, float gain )
+    {
+        // get a voice to use
+        lisa.getVoice() => int voice;
+        
+        // if available
+        if( voice > -1 )
+        {
+            // set rate
+            lisa.rate( voice, rate );
+            // set playhead
+            lisa.playPos( voice, pos );
+            // voice gain
+            lisa.voiceGain( voice, gain );
+            // ramp up
+            lisa.rampUp( voice, rampUp );
+            // wait
+            (grainLen - rampUp - rampDown) => now;
+            // ramp down
+            lisa.rampDown( voice, rampDown );
+            // wait
+            rampDown => now;
+        }
+    }
+
 }
+
+
+
+
 

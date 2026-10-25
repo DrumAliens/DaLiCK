@@ -7,14 +7,18 @@ oscOut.dest(Library.OSCOUTIP, Library.OSCOUTPORT);
 
 // ============= DON'T CHANGE BEYOND HERE
 
+"/song/master" => string oscInstrMsgRoot;
+
 0 => int oscMsgRecvr;
+1 => int oscInstrPlay;
 
 16 => int oscNumBeats;
 4 => int oscBeatDivision;
+4 => int oscBeatBar;
 120.0 => float oscSongTempo;
 
 // Start the OSC Message Receiver
-spork ~ OscRecvr();
+spork ~ OscRecvr() @=> Shred @shredId;
 
 // Wait for the OSC signal on the song information
 while (oscMsgRecvr == 0){
@@ -25,12 +29,13 @@ while (oscMsgRecvr == 0){
 
 oscNumBeats => int numBeats;
 oscBeatDivision => int beatDivision;
+oscBeatBar => int beatBar;
 oscSongTempo => float songTempo;
 50 => float shuffle;
 
 // Calculate the timing information
 TimerInfo timerInfo;
-Library.calcTimer(numBeats, beatDivision, songTempo, shuffle) @=> timerInfo;
+Library.calcTimer(numBeats, beatDivision, beatBar, songTempo, shuffle) @=> timerInfo;
 
 timerInfo.numPhraseDivisions*timerInfo.divVal => float val;
 cherr <= "Length of phrase is "<= val <=  " seconds " <= IO.newline(); 
@@ -41,17 +46,18 @@ val::second => dur phraseDur;
 0 => int countMaster;
 
 // Loop round the sample
-while(true)
+while(oscInstrPlay)
 {
 
     // Master 
     if (oscMsgRecvr > 0){
         oscNumBeats => numBeats;
         oscBeatDivision => beatDivision;
+        oscBeatBar => beatBar;
         oscSongTempo => songTempo;
 
         // Calculate the timing information
-        Library.calcTimer(numBeats, beatDivision, songTempo, shuffle) @=> timerInfo;
+        Library.calcTimer(numBeats, beatDivision, beatBar, songTempo, shuffle) @=> timerInfo;
 
         timerInfo.numPhraseDivisions*timerInfo.divVal => float val;
         cherr <= "Length of phrase is "<= val <=  " seconds " <= IO.newline(); 
@@ -69,7 +75,7 @@ while(true)
 
     // Setup OSC message 
     //  Don't reset the counter that is sent out for the player piano mode
-    oscOut.start( "/song/master/phrase" );
+    oscOut.start(oscInstrMsgRoot + "/phrase" );
     countMaster => oscOut.add;
     oscOut.send();    
 
@@ -84,6 +90,9 @@ while(true)
     countLocl++;
     countMaster++;
 }  
+
+// Close/remove the sporked shred using its ID
+Machine.remove(shredId.id());
 
 //----------------------------------------------------------------------------
 // OpenSoundControl (OSC) receiver for Instr
@@ -116,12 +125,22 @@ fun void OscRecvr()
             //      <= "arguments: " <= msg.numArgs() <= IO.newline();         
 
             // Master setup
-            if (msg.address == "/song/master/setup") {
+            //  - ignores any additional strings past /setup
+            //    if the system is triggering specific groups of instruments
+            if (msg.address.find(oscInstrMsgRoot + "/setup") == 0) {
                 msg.numArgs() => oscMsgRecvr;
                 msg.getInt(0) => oscNumBeats;
                 msg.getInt(1) => oscBeatDivision;
-                msg.getFloat(2) => oscSongTempo;
+                msg.getInt(2) => oscBeatBar;
+                msg.getFloat(3) => oscSongTempo;
             }
+
+            // Stop the instrument
+            if (msg.address == oscInstrMsgRoot + "/kill") {
+                if (msg.numArgs() == 1) {
+                    0 => oscInstrPlay;
+                }
+            }  
 
         }     
     }
