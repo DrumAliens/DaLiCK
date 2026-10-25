@@ -30,7 +30,7 @@ An example of the what you can do with the software is given here
 
 https://drumaliens.bandcamp.com/track/bastardisation-of-a-theme-by-dustin-brown-frogs-and-rain
 
-and the set of instructions to generate this is given in Song/SongNotes.txt and Song/SongNotes.ipynb
+and the set of instructions to generate this is given in Song/SongNotes.ipynb
 
 # Operating System
 This code has been tested and run on MAC (I have run previous version in Ubuntu but I have not tested recent versions I don't have a powerfull enough computer to do this).
@@ -98,21 +98,35 @@ In this terminal window it will first display the length of time to complete a p
 ### Terminal 2 - Starting a Song
 You run this from the Song folder 
 
+| Command | Example | Type | Description |
+| --- | --- | --- | --- |
+|**Number of beats**  |n27   |int |defines how many beats are in that phrase (16)  |\
+|**beat Divisor**  |d1 |int   |defines how the beat is divided. The granularity to which you can place samples (4) |\
+|**Tempo**  |t165.0 |float   |defines the tempo of the song (120.0) |\
+|**phrase lengths**  |54:81,82 | int:int,int  |allows you to define different phrase for different instruments (1) |\
+|**instrument groupings**  |"/steamengine" | string |defines a which grouping of instruments you want to start running ("") |\
+|**Kill**|kill | string | this allows you to terminate an instrument that has been running (the idea behind this is good housekeeping/resource management) |\
+
+So in this example
+
 ```bash
-    $ ./00_StartSong.py
+    $ ./00_StartSong.py n27 d1 b3 t165.0 54:81,82 /steamengine 
 ```
+This will start all of the instruments that are grouped under "steamengine" banner, all of the other instruments contained in Library.ck will be waiting for their group to be called. The idea of this is to ensure that other instruments can't be called in error and also elininate any timing slip that might occur over a long performance as any new group will be synched to started at the same time. 
 
-This transmits all of the song timing information ChucK to allow everything to be synced. This has to be run after the ChucK library has been started.
+Note instruments 81 and 82 will take twice as long to complete their cycle than the others. This then allows, as an example vocals to run over a longer cycle than a rhythm section. This makes it easier to program/run and eliminates the need of having to swap between programmed shorter phrases. You could set everything to use the long phrase length but that would mean that changes can only happen when the longer phrase completes which might make the tune slow to progress. Using this approach comes at a cost if you want to, at some point, sync the two sets of instruments running at different cycles, then you have to be accurate when you run any commands live ... it's a trade off.
 
-Once you have done this then you can start running the different instruments. There are two different approaches you can use to play the song.
+Once you have done this then you can start playing the different instruments. There are two different approaches you can use to play the song.
 
 #### 1. Copy and Paste 
 
-SongNotes.txt which contains a series of commands which can be copied and pasted into you instrument terminal. Note: if you are using instructions which delay when an instrument is played then this can block you from copying and pasting in the next command ... this is why you might want more terminals if you want to give a smoother performance.
+Store all of the command line statements into a text file and copy and pasted into the instrument terminal. Note: if you are using instructions which delay when an instrument is played then this can block you from copying and pasting in the next command ... which is why you might want more terminals.
+
+Personally I don't use this approach as copying and pasting live can lead to disaster.
 
 #### 2. Jupyter Notebook
 
-SongNotes.ipynb contains the same series of commands as SongNotes.txt but in a Jupyter notebook. The instrument commands are contained in a python window with !! preceeding the instrument commands, this allows the commands to be run as if it was in a terminal window. The commands can be run by clicking the play button on the left of that section. Using this approach allows you to avoid having to copy and paste commands from a text file into a terminal window which is an advantage when performing live. **Note: you can only run one command at a time so if you use any commands that involve a wait then you will be blocked from running any other commands until the first command has finished.**
+SongNotes.ipynb contains the same series of commands as SongNotes.txt but in a Jupyter notebook. The instrument commands are contained in a python window with !! preceeding the instrument commands, this allows the commands to be run as if it was in a terminal window. The commands can be run by clicking the play button on the left of that section. Using this approach allows you to use the play button to run an individual command live. **Note: you can only run one command at a time so if you use any commands that involve a wait then you will be blocked from running any other commands until the first command has finished.**
 
 ## 01_SongFade.py
 
@@ -129,7 +143,7 @@ To choose which instrument this effects just provide the instrument number/s eit
     $ ./01_SongFade.py r-30.0 11,12,13
 ```
 
-Note: for all of the instuments the default is that the fader is set to one. However, it is also possible to fade in an instrument using a positive time but you would first have to fade that instrument to zero using a negative time.
+Note: for all of the instuments the default is that the fader is set to one. However, it is also possible to fade in an instrument using a positive time but you would first have to fade that instrument to zero using a negative time before it is going to be used.
 
 ## 02_SongFiltFade.py
 
@@ -155,9 +169,10 @@ Each instrument is grouped with the leading number categorises the type of instr
 - 2X vocals
 - 3X piano
 - 4X guitar
-- 5X bass guitar
-- 6x environmental noises
-- 7x frogs 
+- 5X environmental noises
+- 6X frogs
+- 7X steam engine
+- 8X vocals 
 
 You can use the following command line arguements to control what is played. The following are a list of examples with default settings in brackets
 | Command | Example | Type | Description |
@@ -172,6 +187,8 @@ You can use the following command line arguements to control what is played. The
 |**Volume**  |v0.5 |float   |allows you to change the current volume (1.0) |\
 |**sHuffle**  |h66.0 |float   |defines a shuffle relationship of the even and odd beats range 50.0 to 75.0 (50.0)  |\
 |**Wait time**  |w10.0 |float   |defines a wait time/delay of 10.0 seconds before the python sends out the OSC message (0.0) |\
+|**message** |">hello" | string | this allows you to send a messeage to the terminal window useful for debugging ("") |\
+|**Kill** |kill | string | this allows you to terminate an instrument that has been running (the idea behind this is good housekeeping/resource management) |\
 
 You can also mask out which bars are to be played by providing the bar number either as a comma separated or space separated list, for example
 
